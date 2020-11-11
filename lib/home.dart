@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'events.dart';
+import 'eventslist.dart';
 import 'registration.dart';
 
 class HomePage extends StatelessWidget {

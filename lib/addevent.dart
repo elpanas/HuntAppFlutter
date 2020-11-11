@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:huntapp/events.dart';
+import 'package:huntapp/eventslist.dart';
 
 class AddEventPage extends StatelessWidget {
   @override
@@ -143,7 +143,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   }
 
   Future sendData() async {
-    String url = 'http://192.168.0.8:3000/api/event';
+    String url = 'http://192.168.0.3:3000/api/event';
     String pin = await storage.read(key: 'pin');
 
     http
