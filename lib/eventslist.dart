@@ -45,6 +45,7 @@ class _EventsScreenState extends State<EventsScreen> {
   final TextEditingController searchController = TextEditingController();
   List<Event> events = List<Event>();
   bool isadmin = true;
+  String message = '';
 
   @override
   void initState() {
@@ -85,7 +86,7 @@ class _EventsScreenState extends State<EventsScreen> {
               ),
             ),
           ),
-          Divider(),
+          Text(message),
           Expanded(
             child: ListView.builder(
                 itemCount: events.length,
@@ -118,7 +119,7 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Future loadEvents() async {
-    final url = 'http://192.168.0.3:3000/api/event';
+    final url = 'http://192.168.0.8:3000/api/event';
     String pin = await storage.read(key: 'pin');
 
     http.get(
@@ -128,11 +129,17 @@ class _EventsScreenState extends State<EventsScreen> {
         HttpHeaders.authorizationHeader: 'Basic ' + pin
       },
     ).then((res) {
-      final resJson = jsonDecode(res.body);
-      events = resJson.map<Event>((json) => Event.fromJson(json)).toList();
-      setState(() {
-        events = events;
-      });
+      if (res.statusCode == 200) {
+        final resJson = jsonDecode(res.body);
+        events = resJson.map<Event>((json) => Event.fromJson(json)).toList();
+        setState(() {
+          events = events;
+        });
+      } else {
+        setState(() {
+          message = 'No events';
+        });
+      }
     });
   }
 

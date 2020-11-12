@@ -127,7 +127,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future sendData(String name, String psw) async {
-    String url = 'http://192.168.0.3:3000/api/user';
+    String url = 'http://192.168.0.8:3000/api/user';
 
     http
         .post(

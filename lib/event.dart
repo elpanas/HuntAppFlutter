@@ -1,5 +1,19 @@
 import 'package:flutter/material.dart';
 import 'eventslist.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class Game {
+  String gameId, gameName;
+  Game(this.gameId, this.gameName);
+
+  Game.fromJson(Map<String, dynamic> json) {
+    this.gameId = json['_id'];
+    this.gameName = json['name'];
+  }
+}
 
 class SingleEventPage extends StatefulWidget {
   final Event event;
@@ -13,10 +27,115 @@ class _SingleEventPageState extends State<SingleEventPage> {
   final Event event;
   _SingleEventPageState(this.event);
 
+  final storage = new FlutterSecureStorage();
+  final TextEditingController searchController = TextEditingController();
+  List<Game> games = List<Game>();
+  bool isadmin = true;
+  String message = '';
+
+  @override
+  void initState() {
+    //checkUser();
+    loadGames();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text(event.eventName + ': Games')),
-        body: SingleChildScrollView());
+      appBar: AppBar(title: Text('Games (' + event.eventName + ')')),
+      floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: () {
+            /*MaterialPageRoute routeAddEventPage =
+                MaterialPageRoute(builder: (_) => AddGamePage());
+            Navigator.push(context, routeAddEventPage);*/
+          }),
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (_) => searchGames(searchController.text),
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Search...',
+                hintStyle: TextStyle(fontSize: 14),
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
+          ),
+          Text(message),
+          Expanded(
+            child: ListView.builder(
+                itemCount: games.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Card(
+                    elevation: 2,
+                    child: ListTile(
+                      onTap: () {
+                        /*MaterialPageRoute routeEvent = MaterialPageRoute(
+                            builder: (_) => SingleEventPage(games[index]));
+                        Navigator.push(context, routeEvent);*/
+                      },
+                      leading: Icon(Icons.adjust),
+                      title: Text(
+                        games[index].gameName,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future loadGames() async {
+    final url = 'http://192.168.0.8:3000/api/game/event/' + event.eventId;
+    String pin = await storage.read(key: 'pin');
+
+    http.get(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: 'Basic ' + pin
+      },
+    ).then((res) {
+      if (res.statusCode == 200) {
+        final resJson = jsonDecode(res.body);
+        games = resJson.map<Game>((json) => Game.fromJson(json)).toList();
+        setState(() {
+          games = games;
+        });
+      } else {
+        setState(() {
+          message = 'No games';
+        });
+      }
+    });
+  }
+
+  void searchGames(search) {
+    if (search != '')
+      setState(() {
+        games = games
+            .where((element) => element.gameName.startsWith(search))
+            .toList();
+      });
+    else
+      loadGames();
   }
 }

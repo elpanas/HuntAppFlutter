@@ -143,7 +143,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   }
 
   Future sendData() async {
-    String url = 'http://192.168.0.3:3000/api/event';
+    String url = 'http://192.168.0.8:3000/api/event';
     String pin = await storage.read(key: 'pin');
 
     http
