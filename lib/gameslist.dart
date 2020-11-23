@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:huntapp/home.dart';
+import 'addgame.dart';
 import 'eventslist.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -32,6 +34,7 @@ class _SingleEventPageState extends State<SingleEventPage> {
   List<Game> games = List<Game>();
   bool isadmin = true;
   String message = '';
+  MaterialPageRoute routeHome = MaterialPageRoute(builder: (_) => HomePage());
 
   @override
   void initState() {
@@ -50,13 +53,26 @@ class _SingleEventPageState extends State<SingleEventPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Games (' + event.eventName + ')')),
+      appBar: AppBar(
+        title: Text('Games (' + event.eventName + ')'),
+        actions: <Widget>[
+          Padding(
+              padding: EdgeInsets.only(right: 20.0),
+              child: GestureDetector(
+                  onTap: () {},
+                  child: Icon(
+                    Icons.edit,
+                    size: 26.0,
+                  ))),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
-            /*MaterialPageRoute routeAddEventPage =
-                MaterialPageRoute(builder: (_) => AddGamePage());
-            Navigator.push(context, routeAddEventPage);*/
+            MaterialPageRoute routeAddGamePage =
+                MaterialPageRoute(builder: (_) => AddGamePage(this.event));
+            Navigator.pop(context);
+            Navigator.push(context, routeAddGamePage);
           }),
       body: Column(
         children: <Widget>[
@@ -81,9 +97,9 @@ class _SingleEventPageState extends State<SingleEventPage> {
                     elevation: 2,
                     child: ListTile(
                       onTap: () {
-                        /*MaterialPageRoute routeEvent = MaterialPageRoute(
-                            builder: (_) => SingleEventPage(games[index]));
-                        Navigator.push(context, routeEvent);*/
+                        /*MaterialPageRoute routeGame = MaterialPageRoute(
+                            builder: (_) => GamePage(games[index]));
+                        Navigator.push(context, routeGame);*/
                       },
                       leading: Icon(Icons.adjust),
                       title: Text(
@@ -104,7 +120,7 @@ class _SingleEventPageState extends State<SingleEventPage> {
   }
 
   Future loadGames() async {
-    final url = 'http://192.168.0.8:3000/api/game/event/' + event.eventId;
+    final url = 'http://192.168.0.3:3000/api/game/event/' + event.eventId;
     String pin = await storage.read(key: 'pin');
 
     http.get(

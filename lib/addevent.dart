@@ -30,8 +30,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final TextEditingController minlocController = TextEditingController();
   final TextEditingController maxlocController = TextEditingController();
   final TextEditingController avglocController = TextEditingController();
-  MaterialPageRoute routeEvents =
-      MaterialPageRoute(builder: (_) => EventsPage());
   // Create storage
   final storage = new FlutterSecureStorage();
   String textError = '';
@@ -127,7 +125,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
                       sendData().then((value) {
-                        if (value) Navigator.push(context, routeEvents);
+                        MaterialPageRoute routeEvents =
+                            MaterialPageRoute(builder: (_) => EventsPage());
+                        Navigator.push(context, routeEvents);
                       });
                     }
                   },
@@ -143,7 +143,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   }
 
   Future sendData() async {
-    String url = 'http://192.168.0.8:3000/api/event';
+    String url = 'http://192.168.0.3:3000/api/event';
     String pin = await storage.read(key: 'pin');
 
     http
@@ -165,12 +165,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
         setState(() {
           textError = '';
         });
-        return true;
       } else {
         setState(() {
           textError = 'An error has occurred';
         });
-        return false;
       }
     });
     // textError = 'Request in progress...';

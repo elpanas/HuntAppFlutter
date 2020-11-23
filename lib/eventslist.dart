@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addevent.dart';
-import 'event.dart';
+import 'gameslist.dart';
 
 class Event {
   String eventId, userId, eventName, userName;
@@ -70,6 +70,7 @@ class _EventsScreenState extends State<EventsScreen> {
           onPressed: () {
             MaterialPageRoute routeAddEventPage =
                 MaterialPageRoute(builder: (_) => AddEventPage());
+            Navigator.pop(context);
             Navigator.push(context, routeAddEventPage);
           }),
       body: Column(
@@ -119,7 +120,7 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Future loadEvents() async {
-    final url = 'http://192.168.0.8:3000/api/event';
+    final url = 'http://192.168.0.3:3000/api/event';
     String pin = await storage.read(key: 'pin');
 
     http.get(
