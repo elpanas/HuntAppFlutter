@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/eventslist.dart';
+import 'globals.dart' as globals;
 
 class RegistrationPage extends StatelessWidget {
   @override
@@ -119,11 +120,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future sendData(String name, String psw) async {
-    String url = 'http://192.168.0.3:3000/api/user';
-
     http
         .post(
-      url,
+      globals.url + 'user',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8'
       },

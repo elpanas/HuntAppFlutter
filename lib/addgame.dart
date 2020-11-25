@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'eventslist.dart';
 import 'gameslist.dart';
+import 'globals.dart' as globals;
 
 class AddGamePage extends StatelessWidget {
   final Event event;
@@ -78,7 +79,8 @@ class _AddGameScreenState extends State<AddGameScreen> {
                 },
               ),
               Container(height: 25),
-              DropdownButton<String>(
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: 'Riddles Level'),
                 value: gameCategory,
                 items: gameCategories.map((String value) {
                   return DropdownMenuItem<String>(
@@ -107,25 +109,26 @@ class _AddGameScreenState extends State<AddGameScreen> {
               Container(child: Text(textError)),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: RaisedButton(
-                  child: Text(
-                    'Add New Game',
-                    style: TextStyle(color: Colors.white, fontSize: 20),
+                child: Ink(
+                  decoration: const ShapeDecoration(
+                    color: Colors.orange,
+                    shape: CircleBorder(),
                   ),
-                  color: Colors.orange,
-                  onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      sendData().then((value) {
-                        if (value || value == null) {
-                          MaterialPageRoute routeGameList = MaterialPageRoute(
-                              builder: (_) => SingleEventPage(event));
-                          Navigator.push(context, routeGameList);
+                  child: IconButton(
+                      icon: Icon(Icons.save),
+                      color: Colors.white,
+                      onPressed: () {
+                        if (_formKey.currentState.validate()) {
+                          sendData().then((value) {
+                            if (value || value == null) {
+                              MaterialPageRoute routeGameList =
+                                  MaterialPageRoute(
+                                      builder: (_) => SingleEventPage(event));
+                              Navigator.push(context, routeGameList);
+                            }
+                          });
                         }
-                      });
-                    }
-                  },
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
+                      }),
                 ),
               ),
             ],
@@ -136,12 +139,11 @@ class _AddGameScreenState extends State<AddGameScreen> {
   }
 
   Future sendData() async {
-    String url = 'http://192.168.0.3:3000/api/game';
     String pin = await storage.read(key: 'pin');
 
     http
         .post(
-      url,
+      globals.url + 'game',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + pin

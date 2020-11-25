@@ -1,45 +1,43 @@
 import 'package:flutter/material.dart';
-import 'addgame.dart';
-import 'eventslist.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'game.dart';
+import 'cluster.dart';
+import 'gameslist.dart';
 import 'globals.dart' as globals;
 
-class Game {
-  String gameId, gameName;
-  Game(this.gameId, this.gameName);
+class Cluster {
+  int clusterNr;
+  Cluster(this.clusterNr);
 
-  Game.fromJson(Map<String, dynamic> json) {
-    this.gameId = json['_id'];
-    this.gameName = json['name'];
+  Cluster.fromJson(Map<String, dynamic> json) {
+    this.clusterNr = json['cluster'];
   }
 }
 
-class SingleEventPage extends StatefulWidget {
-  final Event event;
-  SingleEventPage(this.event);
+class GamePage extends StatefulWidget {
+  final Game game;
+  GamePage(this.game);
 
   @override
-  _SingleEventPageState createState() => _SingleEventPageState(event);
+  _GamePageState createState() => _GamePageState(game);
 }
 
-class _SingleEventPageState extends State<SingleEventPage> {
-  final Event event;
-  _SingleEventPageState(this.event);
+class _GamePageState extends State<GamePage> {
+  final Game game;
+  _GamePageState(this.game);
 
   final storage = new FlutterSecureStorage();
   final TextEditingController searchController = TextEditingController();
-  List<Game> games = List<Game>();
+  List<Cluster> clusters = List<Cluster>();
   bool isadmin = true;
   String message = '';
 
   @override
   void initState() {
     //checkUser();
-    loadGames();
+    loadClusters();
     super.initState();
   }
 
@@ -54,7 +52,7 @@ class _SingleEventPageState extends State<SingleEventPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Games (' + event.eventName + ')'),
+        title: Text(game.gameName),
         actions: <Widget>[
           Padding(
               padding: EdgeInsets.only(right: 20.0),
@@ -69,40 +67,30 @@ class _SingleEventPageState extends State<SingleEventPage> {
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
-            MaterialPageRoute routeAddGamePage =
-                MaterialPageRoute(builder: (_) => AddGamePage(this.event));
-            Navigator.push(context, routeAddGamePage);
+            MaterialPageRoute routeAddCluster = MaterialPageRoute(
+                builder: (_) => ClusterPage(this.game, clusters.length + 1));
+            Navigator.push(context, routeAddCluster);
           }),
       body: Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: (_) => searchGames(searchController.text),
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                hintStyle: TextStyle(fontSize: 14),
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-          ),
+          // qui le info del game e il pulsante inizia
           Text(message),
           Expanded(
             child: ListView.builder(
-                itemCount: games.length,
+                itemCount: clusters.length,
                 itemBuilder: (BuildContext context, int index) {
                   return Card(
                     elevation: 2,
                     child: ListTile(
                       onTap: () {
-                        MaterialPageRoute routeGame = MaterialPageRoute(
-                            builder: (_) => GamePage(games[index]));
-                        Navigator.push(context, routeGame);
+                        MaterialPageRoute routeCluster = MaterialPageRoute(
+                            builder: (_) =>
+                                ClusterPage(game, clusters[index].clusterNr));
+                        Navigator.push(context, routeCluster);
                       },
                       leading: Icon(Icons.adjust),
                       title: Text(
-                        games[index].gameName,
+                        'Cluster nr.: ' + clusters[index].clusterNr.toString(),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -118,11 +106,11 @@ class _SingleEventPageState extends State<SingleEventPage> {
     );
   }
 
-  Future loadGames() async {
+  Future loadClusters() async {
     String pin = await storage.read(key: 'pin');
 
     http.get(
-      globals.url + 'game/event/' + event.eventId,
+      globals.url + 'loc/game/' + game.gameId,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + pin
@@ -130,26 +118,16 @@ class _SingleEventPageState extends State<SingleEventPage> {
     ).then((res) {
       if (res.statusCode == 200) {
         final resJson = jsonDecode(res.body);
-        games = resJson.map<Game>((json) => Game.fromJson(json)).toList();
+        clusters =
+            resJson.map<Cluster>((json) => Cluster.fromJson(json)).toList();
         setState(() {
-          games = games;
+          clusters = clusters;
         });
       } else {
         setState(() {
-          message = 'No games';
+          message = 'No clusters';
         });
       }
     });
-  }
-
-  void searchGames(search) {
-    if (search != '')
-      setState(() {
-        games = games
-            .where((element) => element.gameName.startsWith(search))
-            .toList();
-      });
-    else
-      loadGames();
   }
 }

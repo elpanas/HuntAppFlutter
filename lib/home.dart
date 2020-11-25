@@ -10,7 +10,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Hunting Treasure',
-      theme: ThemeData(primarySwatch: Colors.brown),
+      theme: ThemeData(primarySwatch: Colors.orange),
       home: Scaffold(
         appBar: AppBar(
           title: Text('Hunting Treasure Home'),
@@ -36,7 +36,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
         children: [
           Container(height: 50),
           Text(
-            'Contenuto temporaneo',
+            'Welcome',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/eventslist.dart';
+import 'globals.dart' as globals;
 
 class AddEventPage extends StatelessWidget {
   @override
@@ -116,24 +117,20 @@ class _AddEventScreenState extends State<AddEventScreen> {
               Container(child: Text(textError)),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: RaisedButton(
-                  child: Text(
-                    'Add New Event',
-                    style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
-                  color: Colors.orange,
-                  onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      sendData().then((value) {
-                        MaterialPageRoute routeEvents =
-                            MaterialPageRoute(builder: (_) => EventsPage());
-                        Navigator.push(context, routeEvents);
-                      });
-                    }
-                  },
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                ),
+                child: IconButton(
+                    icon: Icon(Icons.save),
+                    color: Colors.orange,
+                    onPressed: () {
+                      if (_formKey.currentState.validate()) {
+                        sendData().then((value) {
+                          if (value || value == null) {
+                            MaterialPageRoute routeEvents =
+                                MaterialPageRoute(builder: (_) => EventsPage());
+                            Navigator.push(context, routeEvents);
+                          }
+                        });
+                      }
+                    }),
               ),
             ],
           ),
@@ -143,12 +140,11 @@ class _AddEventScreenState extends State<AddEventScreen> {
   }
 
   Future sendData() async {
-    String url = 'http://192.168.0.3:3000/api/event';
     String pin = await storage.read(key: 'pin');
 
     http
         .post(
-      url,
+      globals.url + 'event',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + pin

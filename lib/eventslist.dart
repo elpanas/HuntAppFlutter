@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addevent.dart';
 import 'gameslist.dart';
+import 'globals.dart' as globals;
 
 class Event {
   String eventId, userId, eventName, userName;
@@ -120,11 +121,10 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Future loadEvents() async {
-    final url = 'http://192.168.0.3:3000/api/event';
     String pin = await storage.read(key: 'pin');
 
     http.get(
-      url,
+      globals.url + 'event',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + pin
