@@ -12,9 +12,6 @@ class HomePage extends StatelessWidget {
       title: 'Hunting Treasure',
       theme: ThemeData(primarySwatch: Colors.orange),
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('Hunting Treasure Home'),
-        ),
         body: HomePageScreen(),
       ),
     );
@@ -28,65 +25,82 @@ class HomePageScreen extends StatefulWidget {
 
 class _HomePageStateScreen extends State<HomePageScreen> {
   final storage = new FlutterSecureStorage();
+  MaterialPageRoute nextRoute;
+  String pin = '';
+
+  @override
+  void initState() {
+    checkUser();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Container(height: 50),
-          Text(
-            'Welcome',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Welcome',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          Container(height: 50),
-          //Image.network('https://bit.ly/flutgelato'),
-          Container(height: 50),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              RaisedButton(
-                color: Colors.orange,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                onPressed: () {
-                  checkUser().then((value) {
-                    if (value) {
-                      MaterialPageRoute routeEventsPage =
-                          MaterialPageRoute(builder: (_) => EventsPage());
-                      Navigator.push(context, routeEventsPage);
-                    } else {
-                      MaterialPageRoute routeRegPage =
-                          MaterialPageRoute(builder: (_) => RegistrationPage());
-                      Navigator.push(context, routeRegPage);
-                    }
-                  });
-                },
-                child: Text(
-                  'Enter',
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                ),
-              )
-            ],
-          ),
-        ],
+            Container(height: 25),
+            //Image.network('https://bit.ly/flutgelato'),
+            Container(height: 25),
+            FlatButton(
+              minWidth: MediaQuery.of(context).size.width / 1.2,
+              color: Colors.orange,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+              onPressed: () {
+                nextRoute = (this.pin != '')
+                    ? MaterialPageRoute(builder: (_) => EventsPage())
+                    : MaterialPageRoute(builder: (_) => RegistrationPage(true));
+
+                Navigator.push(context, nextRoute);
+              },
+              child: Text(
+                'Enter',
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            ),
+            FlatButton(
+              minWidth: MediaQuery.of(context).size.width / 1.2,
+              color: Colors.grey,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+              onPressed: () {
+                nextRoute = (this.pin != '')
+                    ? MaterialPageRoute(builder: (_) => EventsPage())
+                    : MaterialPageRoute(
+                        builder: (_) => RegistrationPage(false));
+
+                Navigator.push(context, nextRoute);
+              },
+              child: Text(
+                'Register',
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Future<bool> checkUser() async {
-    try {
-      String idu = await storage.read(key: 'pin');
-      if (idu != null)
-        return true;
-      else
-        return false;
-    } catch (_) {
-      return false;
-    }
+  void checkUser() async {
+    await storage.read(key: 'pin').then((value) => {
+          if (value != null)
+            setState(() {
+              this.pin = value;
+            })
+        });
   }
 }

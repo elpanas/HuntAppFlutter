@@ -1,36 +1,54 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:huntapp/eventslist.dart';
 import 'globals.dart' as globals;
 
 class RegistrationPage extends StatelessWidget {
+  final login;
+
+  RegistrationPage(this.login);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Sign Up',
       theme: ThemeData(primarySwatch: Colors.orange),
       home: Scaffold(
-        appBar: AppBar(title: Text('Sign Up')),
-        body: RegistrationScreen(),
+        appBar: AppBar(
+            title: (() {
+          if (!login)
+            Text('Registration');
+          else
+            Text('Login');
+        }())),
+        body: RegistrationScreen(login),
       ),
     );
   }
 }
 
 class RegistrationScreen extends StatefulWidget {
+  final login;
+
+  RegistrationScreen(this.login);
+
   @override
-  _RegistrationScreenState createState() => _RegistrationScreenState();
+  _RegistrationScreenState createState() => _RegistrationScreenState(login);
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final login;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController pswController = TextEditingController();
-  final storage = new FlutterSecureStorage();
-  String result = '';
-  var _checked = false;
+  final storage = FlutterSecureStorage();
+  bool _result = false;
+  var _checked = true; // CAMBIALO IN FALSE DOPO
+  String pin = '';
+
+  _RegistrationScreenState(this.login);
 
   @override
   void dispose() {
@@ -79,16 +97,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 },
               ),
               Container(height: 25),
-              CheckboxListTile(
-                title: Text('Check if you are an organizer'),
-                value: _checked,
-                onChanged: (bool value) {
-                  setState(() {
-                    _checked = value;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
+              if (!login)
+                CheckboxListTile(
+                  title: Text('Check if you are an organizer'),
+                  value: _checked,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _checked = value;
+                    });
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: RaisedButton(
@@ -99,19 +118,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   color: Colors.orange,
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
-                      sendData(nameController.text, pswController.text)
-                          .then((value) {
-                        MaterialPageRoute routeEvents =
-                            MaterialPageRoute(builder: (_) => EventsPage());
-                        Navigator.push(context, routeEvents);
-                      });
+                      if (!login) {
+                        createUser(nameController.text, pswController.text)
+                            .then((value) {
+                          Navigator.pop(context);
+                        });
+                      } else
+                        checkUser(nameController.text, pswController.text)
+                            .then((value) {
+                          Navigator.pop(context);
+                        });
                     }
                   },
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0)),
                 ),
               ),
-              Container(child: Text(result)),
+              //Container(child: Text(result)),
             ],
           ),
         ),
@@ -119,7 +142,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  Future sendData(String name, String psw) async {
+  Future createUser(String name, String psw) async {
     http
         .post(
       globals.url + 'user',
@@ -134,18 +157,41 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         'is_admin': _checked
       }),
     )
-        .then((res) {
+        .then((res) async {
       if (res.statusCode == 200) {
-        setState(() async {
-          await storage.deleteAll();
-          await storage.write(
-              key: 'pin', value: base64.encode(utf8.encode(name + ':' + psw)));
-          await storage.write(key: 'is_admin', value: _checked.toString());
-          // result = 'Ciao';
+        await storage.deleteAll();
+        await storage.write(key: 'is_admin', value: _checked.toString());
+        await storage.write(
+            key: 'pin', value: base64.encode(utf8.encode(name + ':' + psw)));
+
+        setState(() {
+          this.pin = base64.encode(utf8.encode(name + ':' + psw));
         });
-      } else
-        throw Exception();
+      }
     });
-    result = 'Request in progress...';
+
+    //result = 'Request in progress...';
+  }
+
+  Future checkUser(String name, String psw) async {
+    http.get(
+      globals.url + 'user/login',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: 'Basic ' + pin
+      },
+    ).then((res) async {
+      print(res.statusCode);
+      if (res.statusCode == 200) {
+        await storage.deleteAll();
+        await storage.write(key: 'is_admin', value: _checked.toString());
+        await storage.write(
+            key: 'pin', value: base64.encode(utf8.encode(name + ':' + psw)));
+
+        setState(() {
+          this.pin = base64.encode(utf8.encode(name + ':' + psw));
+        });
+      }
+    });
   }
 }

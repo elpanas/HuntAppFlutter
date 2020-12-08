@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'eventslist.dart';
+import 'containers/eventcontainer.dart';
 import 'gameslist.dart';
 import 'globals.dart' as globals;
 
@@ -64,20 +64,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              TextFormField(
-                controller: nameController,
-                keyboardType: TextInputType.name,
-                decoration: InputDecoration(
-                  hintText: 'Type the name of the game',
-                  hintStyle: TextStyle(fontSize: 18),
-                ),
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
-              ),
+              _buidlFieldName(),
               Container(height: 25),
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(labelText: 'Riddles Level'),
@@ -135,6 +122,23 @@ class _AddGameScreenState extends State<AddGameScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buidlFieldName() {
+    return TextFormField(
+      controller: nameController,
+      keyboardType: TextInputType.name,
+      decoration: InputDecoration(
+        hintText: 'Type the name of the game',
+        hintStyle: TextStyle(fontSize: 18),
+      ),
+      validator: (value) {
+        if (value.isEmpty) {
+          return 'Please enter some text';
+        }
+        return null;
+      },
     );
   }
 

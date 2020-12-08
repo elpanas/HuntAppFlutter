@@ -1,22 +1,13 @@
 import 'package:flutter/material.dart';
 import 'addgame.dart';
-import 'eventslist.dart';
+import 'containers/eventcontainer.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'game.dart';
+import 'containers/gamecontainer.dart';
 import 'globals.dart' as globals;
-
-class Game {
-  String gameId, gameName;
-  Game(this.gameId, this.gameName);
-
-  Game.fromJson(Map<String, dynamic> json) {
-    this.gameId = json['_id'];
-    this.gameName = json['name'];
-  }
-}
 
 class SingleEventPage extends StatefulWidget {
   final Event event;
@@ -34,18 +25,17 @@ class _SingleEventPageState extends State<SingleEventPage> {
   final TextEditingController searchController = TextEditingController();
   List<Game> games = List<Game>();
   bool isadmin = true;
+  String pin = '';
   String message = '';
 
   @override
   void initState() {
-    //checkUser();
-    loadGames();
+    checkUser();
     super.initState();
   }
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     searchController.dispose();
     super.dispose();
   }
@@ -66,13 +56,14 @@ class _SingleEventPageState extends State<SingleEventPage> {
                   ))),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: () {
-            MaterialPageRoute routeAddGamePage =
-                MaterialPageRoute(builder: (_) => AddGamePage(this.event));
-            Navigator.push(context, routeAddGamePage);
-          }),
+      floatingActionButton: (isadmin)
+          ? FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => AddGamePage(this.event)));
+              })
+          : null,
       body: Column(
         children: <Widget>[
           Padding(
@@ -96,9 +87,10 @@ class _SingleEventPageState extends State<SingleEventPage> {
                     elevation: 2,
                     child: ListTile(
                       onTap: () {
-                        MaterialPageRoute routeGame = MaterialPageRoute(
-                            builder: (_) => GamePage(games[index]));
-                        Navigator.push(context, routeGame);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => GamePage(games[index])));
                       },
                       leading: Icon(Icons.adjust),
                       title: Text(
@@ -118,14 +110,18 @@ class _SingleEventPageState extends State<SingleEventPage> {
     );
   }
 
-  Future loadGames() async {
-    String pin = await storage.read(key: 'pin');
+  void checkUser() async {
+    await storage
+        .read(key: 'pin')
+        .then((value) => {this.pin = value, loadGames()});
+  }
 
+  void loadGames() {
     http.get(
       globals.url + 'game/event/' + event.eventId,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + pin
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
       if (res.statusCode == 200) {

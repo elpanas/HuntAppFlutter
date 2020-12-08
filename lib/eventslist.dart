@@ -4,26 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addevent.dart';
+import 'containers/eventcontainer.dart';
 import 'gameslist.dart';
 import 'globals.dart' as globals;
-
-class Event {
-  String eventId, userId, eventName, userName;
-  int minLoc, maxLoc, avgLoc;
-
-  Event(this.eventId, this.eventName, this.minLoc, this.maxLoc, this.avgLoc,
-      this.userId, this.userName);
-
-  Event.fromJson(Map<String, dynamic> json) {
-    this.eventId = json['_id'];
-    this.eventName = json['name'];
-    this.maxLoc = json['min_locations'];
-    this.minLoc = json['max_locations'];
-    this.avgLoc = json['min_avg_distance'];
-    this.userId = json['organizer']['_id'];
-    this.userName = json['organizer']['username'];
-  }
-}
 
 class EventsPage extends StatelessWidget {
   @override
@@ -45,19 +28,20 @@ class _EventsScreenState extends State<EventsScreen> {
   final storage = new FlutterSecureStorage();
   final TextEditingController searchController = TextEditingController();
   List<Event> events = List<Event>();
-  bool isadmin = true;
+  bool isadmin = false;
+  bool showProgress;
+  String pin = '';
   String message = '';
 
   @override
   void initState() {
-    //checkUser();
-    loadEvents();
+    this.showProgress = true;
+    checkUser();
     super.initState();
   }
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     searchController.dispose();
     super.dispose();
   }
@@ -66,14 +50,15 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Events List')),
-      floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: () {
-            MaterialPageRoute routeAddEventPage =
-                MaterialPageRoute(builder: (_) => AddEventPage());
-            Navigator.pop(context);
-            Navigator.push(context, routeAddEventPage);
-          }),
+      floatingActionButton: (isadmin)
+          ? FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () {
+                // Navigator.pop(context);
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => AddEventPage()));
+              })
+          : null,
       body: Column(
         children: <Widget>[
           Padding(
@@ -89,6 +74,7 @@ class _EventsScreenState extends State<EventsScreen> {
             ),
           ),
           Text(message),
+          if (showProgress) _buildLoader(),
           Expanded(
             child: ListView.builder(
                 itemCount: events.length,
@@ -97,9 +83,11 @@ class _EventsScreenState extends State<EventsScreen> {
                     elevation: 2,
                     child: ListTile(
                       onTap: () {
-                        MaterialPageRoute routeEvent = MaterialPageRoute(
-                            builder: (_) => SingleEventPage(events[index]));
-                        Navigator.push(context, routeEvent);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    SingleEventPage(events[index])));
                       },
                       leading: Icon(Icons.adjust),
                       title: Text(
@@ -120,14 +108,30 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 
-  Future loadEvents() async {
-    String pin = await storage.read(key: 'pin');
+  Widget _buildLoader() {
+    return Expanded(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
 
+  void checkUser() async {
+    this.isadmin = (await storage.read(key: 'is_admin') == 'true');
+    await storage
+        .read(key: 'pin')
+        .then((value) => {this.pin = value, loadEvents()});
+  }
+
+  void loadEvents() async {
     http.get(
       globals.url + 'event',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + pin
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
       if (res.statusCode == 200) {
@@ -135,6 +139,7 @@ class _EventsScreenState extends State<EventsScreen> {
         events = resJson.map<Event>((json) => Event.fromJson(json)).toList();
         setState(() {
           events = events;
+          this.showProgress = false;
         });
       } else {
         setState(() {
@@ -153,13 +158,5 @@ class _EventsScreenState extends State<EventsScreen> {
       });
     else
       loadEvents();
-  }
-
-  void checkUser() async {
-    try {
-      isadmin = (await storage.read(key: 'is_admin') == 'true');
-    } catch (_) {
-      // nothing
-    }
   }
 }

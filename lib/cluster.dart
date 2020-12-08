@@ -4,114 +4,121 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addlocation.dart';
-import 'gameslist.dart';
+import 'containers/gamecontainer.dart';
+import 'containers/locationcontainer.dart';
 import 'globals.dart' as globals;
 
-class Location {
-  String locId, locDescription, locImagepath;
-  bool locStart, locFinal;
-
-  Location(this.locId, this.locDescription, this.locImagepath, this.locStart,
-      this.locFinal);
-
-  Location.fromJson(Map<String, dynamic> json) {
-    this.locId = json['_id'];
-    this.locDescription = json['description'];
-    this.locImagepath = json['image_path'];
-    this.locStart = json['is_start'];
-    this.locFinal = json['is_final'];
-  }
-}
-
-class ClusterPage extends StatelessWidget {
+class ClusterPage extends StatefulWidget {
   final Game game;
   final int cluster;
   ClusterPage(this.game, this.cluster);
+
+  @override
+  _ClusterPageState createState() => _ClusterPageState(game, cluster);
+}
+
+class _ClusterPageState extends State<ClusterPage> {
+  final Game game;
+  final int cluster;
+  _ClusterPageState(this.game, this.cluster);
+  final storage = new FlutterSecureStorage();
+  List<Location> locations = List<Location>();
+  String pin = '';
+  bool isadmin = true;
+  bool showAddButton = false;
+  bool locStartFinalWarn = false;
+  String message = '';
+
+  @override
+  void initState() {
+    checkUser();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Cluster nr.:' + cluster.toString(),
       theme: ThemeData(primarySwatch: Colors.orange),
-      home: ClusterScreen(game, cluster),
-    );
-  }
-}
-
-class ClusterScreen extends StatefulWidget {
-  final Game game;
-  final int cluster;
-  ClusterScreen(this.game, this.cluster);
-
-  @override
-  _ClusterScreenState createState() => _ClusterScreenState(game, cluster);
-}
-
-class _ClusterScreenState extends State<ClusterScreen> {
-  final Game game;
-  final int cluster;
-  _ClusterScreenState(this.game, this.cluster);
-  final storage = new FlutterSecureStorage();
-  List<Location> locations = List<Location>();
-  bool isadmin = true;
-  String message = '';
-
-  @override
-  void initState() {
-    //checkUser();
-    loadLocations();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Cluster nr.:' + cluster.toString())),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add_location),
-        onPressed: () {
-          MaterialPageRoute routeLoc = MaterialPageRoute(
-              builder: (_) => AddLocation(this.game, this.cluster));
-          Navigator.push(context, routeLoc);
-        },
-      ),
-      body: Column(
-        children: <Widget>[
-          Text(message),
-          Expanded(
-            child: ListView.builder(
-                itemCount: locations.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Card(
-                    elevation: 2,
-                    child: ListTile(
-                      onTap: () {
-                        /*MaterialPageRoute routeEvent = MaterialPageRoute(
-                            builder: (_) =>
-                                SingleEventPage(locations[index].locId));
-                        Navigator.push(context, routeEvent);*/
-                      },
-                      leading: Icon(Icons.location_on),
-                      title: Text(
-                        locations[index].locDescription,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
+      home: Scaffold(
+        appBar: AppBar(title: Text('Cluster nr.:' + cluster.toString())),
+        floatingActionButton: (this.showAddButton)
+            ? FloatingActionButton(
+                child: Icon(Icons.add_location),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              AddLocation(this.game, this.cluster)));
+                },
+              )
+            : null,
+        body: Column(
+          children: <Widget>[
+            Text(message),
+            Expanded(
+              child: ListView.builder(
+                  itemCount: locations.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Card(
+                      elevation: 2,
+                      child: ListTile(
+                        tileColor: (locations[index].locStart ||
+                                locations[index].locFinal)
+                            ? Colors.blueAccent.shade50
+                            : null,
+                        onTap: () {
+                          /*MaterialPageRoute routeEvent = MaterialPageRoute(
+                              builder: (_) =>
+                                  SingleEventPage(locations[index]));
+                          Navigator.push(context, routeEvent);*/
+                        },
+                        leading: Icon(Icons.location_on),
+                        title: Text(
+                          'Location ' + (index + 1).toString(),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }),
-          ),
-        ],
+                    );
+                  }),
+            ),
+            if (locStartFinalWarn) _buildWarning(),
+          ],
+        ),
       ),
     );
   }
 
-  Future loadLocations() async {
-    String pin = await storage.read(key: 'pin');
+  Widget _buildWarning() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Text('You have to add Start and/or final locations yet'),
+    );
+  }
 
+  // check if the max number of locations has been reached
+  void checkLocNr() {
+    http.get(
+      globals.url + 'checklocnr/' + this.game.gameId,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+      },
+    ).then((res) {
+      if (res.statusCode == 200) {
+        setState(() {
+          this.showAddButton = true;
+        });
+      }
+    });
+  }
+
+  void loadLocations() {
     http.get(
       globals.url +
           'loc/game/' +
@@ -120,7 +127,7 @@ class _ClusterScreenState extends State<ClusterScreen> {
           cluster.toString(),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + pin
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
       if (res.statusCode == 200) {
@@ -139,10 +146,9 @@ class _ClusterScreenState extends State<ClusterScreen> {
   }
 
   void checkUser() async {
-    try {
-      isadmin = (await storage.read(key: 'is_admin') == 'true');
-    } catch (_) {
-      // nothing
-    }
+    isadmin = (await storage.read(key: 'is_admin') == 'true');
+    await storage
+        .read(key: 'pin')
+        .then((value) => {this.pin = value, loadLocations(), checkLocNr()});
   }
 }

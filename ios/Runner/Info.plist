@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
+<dict>	
+	<key>NSCameraUsageDescription</key>
+	<string>Explanation on why the camera access is needed.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
   	<string>This app needs your location to test the location feature of the Google Maps location picker plugin.</string>
 	<key>CFBundleDevelopmentRegion</key>

@@ -1,4 +1,8 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:huntapp/home.dart';
 
-void main() => runApp(HomePage());
+Future main() async {
+  await DotEnv().load('.env');
+  runApp(HomePage());
+}

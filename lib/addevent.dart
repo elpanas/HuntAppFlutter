@@ -33,7 +33,14 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final TextEditingController avglocController = TextEditingController();
   // Create storage
   final storage = new FlutterSecureStorage();
+  String pin = '';
   String textError = '';
+
+  @override
+  void initState() {
+    checkUser();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -124,9 +131,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
                       if (_formKey.currentState.validate()) {
                         sendData().then((value) {
                           if (value || value == null) {
-                            MaterialPageRoute routeEvents =
-                                MaterialPageRoute(builder: (_) => EventsPage());
-                            Navigator.push(context, routeEvents);
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => EventsPage()));
                           }
                         });
                       }
@@ -139,15 +147,17 @@ class _AddEventScreenState extends State<AddEventScreen> {
     );
   }
 
-  Future sendData() async {
-    String pin = await storage.read(key: 'pin');
+  void checkUser() async {
+    await storage.read(key: 'pin').then((value) => {this.pin = value});
+  }
 
+  Future sendData() async {
     http
         .post(
       globals.url + 'event',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + pin
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
       body: jsonEncode(<String, dynamic>{
         'name': nameController.text,

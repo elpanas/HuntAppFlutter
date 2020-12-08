@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_map_location_picker/generated/l10n.dart';
@@ -11,8 +12,18 @@ import 'package:google_map_location_picker/generated/l10n.dart'
     as location_picker;
 import 'package:google_map_location_picker/google_map_location_picker.dart';
 import 'package:huntapp/cluster.dart';
-import 'gameslist.dart';
+import 'containers/gamecontainer.dart';
 import 'globals.dart' as globals;
+
+class Loc {
+  bool locStart, locFinal;
+  Loc(this.locStart, this.locFinal);
+
+  Loc.fromJson(Map<String, dynamic> json) {
+    this.locStart = json['is_start']; //cluster
+    this.locFinal = json['is_final'];
+  }
+}
 
 class AddLocation extends StatefulWidget {
   final Game game;
@@ -29,18 +40,28 @@ enum LocationType { is_start, is_middle, is_final }
 class _AddLocationState extends State<AddLocation> {
   final Game game;
   final int cluster;
-  LocationResult _pickedLocation;
-  String apiKey = Key("MAP_API_KEY").toString();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descController = TextEditingController();
   final TextEditingController hintController = TextEditingController();
-  // Create storage
   final storage = new FlutterSecureStorage();
+  List<Loc> locs = List<Loc>();
+  LocationResult _pickedLocation;
   LocationType _loctype = LocationType.is_middle;
+  String pin = '';
   String textError = '';
+  bool showRadioStart;
+  bool showRadioFinal;
 
   _AddLocationState(this.game, this.cluster);
+
+  @override
+  void initState() {
+    this.showRadioStart = false;
+    this.showRadioFinal = false;
+    checkUser();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -62,15 +83,7 @@ class _AddLocationState extends State<AddLocation> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const <Locale>[
-        Locale('en', ''),
-        Locale('ar', ''),
-        Locale('pt', ''),
-        Locale('tr', ''),
-        Locale('es', ''),
-        Locale('it', ''),
-        Locale('ru', ''),
-      ],
+      supportedLocales: const <Locale>[Locale('en', ''), Locale('it', '')],
       home: Scaffold(
         appBar: AppBar(title: Text('Add New Location')),
         floatingActionButton: FloatingActionButton(
@@ -78,16 +91,11 @@ class _AddLocationState extends State<AddLocation> {
           onPressed: () async {
             Position current = await Geolocator.getLastKnownPosition();
             LocationResult result = await showLocationPicker(
-              context, "AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg",
+              context,
+              DotEnv().env['VAR_NAME'],
               initialCenter: LatLng(current.latitude, current.longitude),
-              // automaticallyAnimateToCurrentLocation: true,
-              //mapStylePath: 'assets/mapStyle.json',
               myLocationButtonEnabled: true,
-              // requiredGPS: true,
               layersButtonEnabled: true,
-              // countries: ['AE', 'NG']
-
-//                      resultCardAlignment: Alignment.bottomCenter,
               desiredAccuracy: LocationAccuracy.best,
             );
             setState(() => _pickedLocation = result);
@@ -135,16 +143,17 @@ class _AddLocationState extends State<AddLocation> {
                   Container(height: 25),
                   Column(
                     children: <Widget>[
-                      RadioListTile<LocationType>(
-                        title: const Text('Start'),
-                        value: LocationType.is_start,
-                        groupValue: _loctype,
-                        onChanged: (LocationType value) {
-                          setState(() {
-                            _loctype = value;
-                          });
-                        },
-                      ),
+                      if (!showRadioStart)
+                        RadioListTile<LocationType>(
+                          title: const Text('Start'),
+                          value: LocationType.is_start,
+                          groupValue: _loctype,
+                          onChanged: (LocationType value) {
+                            setState(() {
+                              _loctype = value;
+                            });
+                          },
+                        ),
                       RadioListTile<LocationType>(
                         title: const Text('Middle'),
                         value: LocationType.is_middle,
@@ -155,16 +164,17 @@ class _AddLocationState extends State<AddLocation> {
                           });
                         },
                       ),
-                      RadioListTile<LocationType>(
-                        title: const Text('Final'),
-                        value: LocationType.is_final,
-                        groupValue: _loctype,
-                        onChanged: (LocationType value) {
-                          setState(() {
-                            _loctype = value;
-                          });
-                        },
-                      )
+                      if (!showRadioFinal)
+                        RadioListTile<LocationType>(
+                          title: const Text('Final'),
+                          value: LocationType.is_final,
+                          groupValue: _loctype,
+                          onChanged: (LocationType value) {
+                            setState(() {
+                              _loctype = value;
+                            });
+                          },
+                        )
                     ],
                   ),
                   Container(child: Text(textError)),
@@ -179,11 +189,11 @@ class _AddLocationState extends State<AddLocation> {
                         onPressed: () {
                           if (_formKey.currentState.validate()) {
                             sendData().then((value) {
-                              MaterialPageRoute routeCluster =
+                              Navigator.push(
+                                  context,
                                   MaterialPageRoute(
-                                      builder: (_) =>
-                                          ClusterPage(this.game, this.cluster));
-                              Navigator.push(context, routeCluster);
+                                      builder: (_) => ClusterPage(
+                                          this.game, this.cluster)));
                             });
                           }
                         }),
@@ -197,15 +207,32 @@ class _AddLocationState extends State<AddLocation> {
     );
   }
 
-  Future sendData() async {
-    String pin = await storage.read(key: 'pin');
+  void checkStartFinal() {
+    http.get(globals.url + 'locsf/' + this.game.gameId,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        }).then((res) {
+      if (res.statusCode == 200) {
+        final resJson = jsonDecode(res.body);
+        locs = resJson.map<Loc>((json) => Loc.fromJson(json)).toList();
+        setState(() {
+          locs.forEach((element) {
+            if (element.locStart) this.showRadioStart = false;
+            if (element.locFinal) this.showRadioFinal = false;
+          });
+        });
+      }
+    });
+  }
 
+  Future sendData() async {
     http
         .post(
       globals.url + 'loc',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + pin
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
       body: jsonEncode(<String, dynamic>{
         'game_id': this.game.gameId,
@@ -236,5 +263,9 @@ class _AddLocationState extends State<AddLocation> {
       }
     });
     // textError = 'Request in progress...';
+  }
+
+  void checkUser() async {
+    await storage.read(key: 'pin').then((value) => {this.pin = value});
   }
 }
