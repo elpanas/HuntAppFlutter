@@ -3,35 +3,42 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'cluster.dart';
 import 'containers/clustercontainer.dart';
+import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
 import 'containers/locationcontainer.dart';
+import 'containers/optionscontainer.dart';
+import 'package:collection/collection.dart';
 import 'globals.dart' as globals;
 
 class ClusterList extends StatefulWidget {
+  final Event event;
   final Game game;
-  ClusterList(this.game);
+  ClusterList(this.event, this.game);
 
   @override
-  _ClusterListState createState() => _ClusterListState(game);
+  _ClusterListState createState() => _ClusterListState(event, game);
 }
 
 class _ClusterListState extends State<ClusterList> {
+  final Event event;
   final Game game;
-  _ClusterListState(this.game);
+  _ClusterListState(this.event, this.game);
 
   final storage = new FlutterSecureStorage();
-  final pdf = pw.Document();
   List<Cluster> clusters = List<Cluster>();
+  List<Location> locations = List<Location>();
+  Opts locOptions;
   bool isadmin = true;
   String pin = '';
   String idsg = '';
   String message = '';
   String urlqrcode = '';
+  int locnr;
+  int minlocs;
+  int maxlocs;
+  bool loctype;
   bool showQrButton;
   bool showAddButton;
   bool showProgress;
@@ -66,8 +73,8 @@ class _ClusterListState extends State<ClusterList> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (_) =>
-                        ClusterPage(this.game, clusters.length + 1)));
+                    builder: (_) => ClusterPage(this.event, this.game,
+                        clusters.length + 1, this.locOptions)));
           }),
       body: Column(
         children: [
@@ -82,8 +89,8 @@ class _ClusterListState extends State<ClusterList> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => ClusterPage(
-                                    game, clusters[index].clusterNr)));
+                                builder: (_) => ClusterPage(event, game,
+                                    clusters[index].clusterNr, locOptions)));
                       },
                       leading: Icon(Icons.adjust),
                       title: Text(
@@ -184,28 +191,50 @@ class _ClusterListState extends State<ClusterList> {
     });
   }
 
-  void checkLocationNumber() {
+  void loadLocations() {
     http.get(
-      globals.url + 'loc/checklocnr/' + game.gameId,
+      globals.url + 'loc/game/' + game.gameId,
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
-      switch (res.statusCode) {
-        case 210:
+      if (res.statusCode == HttpStatus.ok) {
+        final resJson = jsonDecode(res.body);
+        locations =
+            resJson.map<Location>((json) => Location.fromJson(json)).toList();
+
+        var locs = locations.where((loc) => loc.locStart == true).toList();
+        var locf = locations.where((loc) => loc.locFinal == true).toList();
+
+        setState(() {
+          locOptions.locnr = locations.length;
+          locOptions.isstart = (locs.length > 0) ? true : false;
+          locOptions.isfinal = (locf.length > 0) ? true : false;
+        });
+
+        if (locOptions.isfinal) {
           setState(() {
             this.showQrButton = true;
           });
-          break;
-        case 220:
-          break;
-        case 230:
+        } else if (locations.length < this.event.minLoc ||
+            locations.length < this.event.maxLoc) {
           setState(() {
-            this.showQrButton = true;
             this.showAddButton = false;
           });
-          break;
+        }
+
+        setState(() {
+          clusters = groupBy(locations, (element) => element['cluster'])
+              .keys
+              .map<Cluster>((json) => Cluster.fromJson(json))
+              .toList();
+          this.showProgress = false;
+        });
+      } else {
+        setState(() {
+          message = 'No clusters';
+          this.showProgress = false;
+        });
       }
     });
   }
@@ -213,6 +242,6 @@ class _ClusterListState extends State<ClusterList> {
   void checkUser() async {
     this.isadmin = (await storage.read(key: 'is_admin') == 'true');
     await storage.read(key: 'pin').then(
-        (value) => {this.pin = value, loadClusters(), checkLocationNumber()});
+        (value) => {this.pin = value, /*loadClusters(),*/ loadLocations()});
   }
 }

@@ -10,22 +10,25 @@ import 'package:transparent_image/transparent_image.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:huntapp/clusterlist.dart';
+import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
 import 'package:huntapp/containers/actioncontainer.dart';
 import 'containers/riddlecontainer.dart';
 import 'globals.dart' as globals;
 
 class GamePage extends StatefulWidget {
+  final Event event;
   final Game game;
-  GamePage(this.game);
+  GamePage(this.event, this.game);
 
   @override
-  _GamePageState createState() => _GamePageState(game);
+  _GamePageState createState() => _GamePageState(event, game);
 }
 
 class _GamePageState extends State<GamePage> {
+  final Event event;
   final Game game;
-  _GamePageState(this.game);
+  _GamePageState(this.event, this.game);
   final storage = new FlutterSecureStorage();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController solController = TextEditingController();
@@ -90,7 +93,8 @@ class _GamePageState extends State<GamePage> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => ClusterList(this.game)));
+                              builder: (_) =>
+                                  ClusterList(this.event, this.game)));
                     },
                     child: Icon(Icons.storage, size: 26.0))),
         ],

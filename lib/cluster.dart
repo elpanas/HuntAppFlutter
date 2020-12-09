@@ -4,23 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addlocation.dart';
+import 'package:huntapp/containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
 import 'containers/locationcontainer.dart';
+import 'containers/optionscontainer.dart';
 import 'globals.dart' as globals;
 
 class ClusterPage extends StatefulWidget {
+  final Event event;
   final Game game;
   final int cluster;
-  ClusterPage(this.game, this.cluster);
+  final Opts options;
+  ClusterPage(this.event, this.game, this.cluster, this.options);
 
   @override
-  _ClusterPageState createState() => _ClusterPageState(game, cluster);
+  _ClusterPageState createState() =>
+      _ClusterPageState(event, game, cluster, options);
 }
 
 class _ClusterPageState extends State<ClusterPage> {
+  final Event event;
   final Game game;
   final int cluster;
-  _ClusterPageState(this.game, this.cluster);
+  final Opts options;
+  _ClusterPageState(this.event, this.game, this.cluster, this.options);
   final storage = new FlutterSecureStorage();
   List<Location> locations = List<Location>();
   String pin = '';
@@ -49,8 +56,8 @@ class _ClusterPageState extends State<ClusterPage> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) =>
-                              AddLocation(this.game, this.cluster)));
+                          builder: (_) => AddLocation(this.event, this.game,
+                              this.cluster, this.options)));
                 },
               )
             : null,
@@ -102,31 +109,18 @@ class _ClusterPageState extends State<ClusterPage> {
   }
 
   // check if the max number of locations has been reached
-  void checkLocNr() {
-    http.get(
-      globals.url + 'checklocnr/' + this.game.gameId,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
-      },
-    ).then((res) {
-      if (res.statusCode == 200) {
-        setState(() {
-          this.showAddButton = true;
-        });
-      }
-    });
+  void checkAddButton() {
+    if (!this.options.isfinal || this.options.locnr < this.event.minLoc) {
+      setState(() {
+        this.showAddButton = true;
+      });
+    }
   }
 
   void loadLocations() {
     http.get(
-      globals.url +
-          'loc/game/' +
-          game.gameId +
-          '/cluster/' +
-          cluster.toString(),
+      globals.url + 'loc/game/' + game.gameId,
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
@@ -135,7 +129,8 @@ class _ClusterPageState extends State<ClusterPage> {
         locations =
             resJson.map<Location>((json) => Location.fromJson(json)).toList();
         setState(() {
-          locations = locations;
+          locations =
+              locations.where((element) => element.locCluster == cluster);
         });
       } else {
         setState(() {
@@ -149,6 +144,6 @@ class _ClusterPageState extends State<ClusterPage> {
     isadmin = (await storage.read(key: 'is_admin') == 'true');
     await storage
         .read(key: 'pin')
-        .then((value) => {this.pin = value, loadLocations(), checkLocNr()});
+        .then((value) => {this.pin = value, loadLocations(), checkAddButton()});
   }
 }

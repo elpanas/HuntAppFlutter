@@ -90,7 +90,8 @@ class _SingleEventPageState extends State<SingleEventPage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => GamePage(games[index])));
+                                builder: (_) =>
+                                    GamePage(this.event, games[index])));
                       },
                       leading: Icon(Icons.adjust),
                       title: Text(

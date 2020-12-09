@@ -10,7 +10,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Hunting Treasure',
-      theme: ThemeData(primarySwatch: Colors.orange),
+      theme: ThemeData(primarySwatch: Colors.amber),
       home: Scaffold(
         body: HomePageScreen(),
       ),
@@ -42,21 +42,15 @@ class _HomePageStateScreen extends State<HomePageScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              'Welcome',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Image(image: AssetImage('assets/title.png')),
             ),
-            Container(height: 25),
-            //Image.network('https://bit.ly/flutgelato'),
-            Container(height: 25),
             FlatButton(
               minWidth: MediaQuery.of(context).size.width / 1.2,
               color: Colors.orange,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(20),
               ),
               onPressed: () {
                 nextRoute = (this.pin != '')
@@ -74,7 +68,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
               minWidth: MediaQuery.of(context).size.width / 1.2,
               color: Colors.grey,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(20),
               ),
               onPressed: () {
                 nextRoute = (this.pin != '')

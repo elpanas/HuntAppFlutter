@@ -12,52 +12,50 @@ import 'package:google_map_location_picker/generated/l10n.dart'
     as location_picker;
 import 'package:google_map_location_picker/google_map_location_picker.dart';
 import 'package:huntapp/cluster.dart';
+import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
+import 'containers/optionscontainer.dart';
 import 'globals.dart' as globals;
 
-class Loc {
-  bool locStart, locFinal;
-  Loc(this.locStart, this.locFinal);
-
-  Loc.fromJson(Map<String, dynamic> json) {
-    this.locStart = json['is_start']; //cluster
-    this.locFinal = json['is_final'];
-  }
-}
-
 class AddLocation extends StatefulWidget {
+  final Event event;
   final Game game;
   final int cluster;
+  final Opts options;
 
-  AddLocation(this.game, this.cluster);
+  AddLocation(this.event, this.game, this.cluster, this.options);
 
   @override
-  _AddLocationState createState() => _AddLocationState(this.game, this.cluster);
+  _AddLocationState createState() =>
+      _AddLocationState(this.event, this.game, this.cluster, this.options);
 }
 
 enum LocationType { is_start, is_middle, is_final }
 
 class _AddLocationState extends State<AddLocation> {
+  final Event event;
   final Game game;
   final int cluster;
+  final Opts options;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descController = TextEditingController();
   final TextEditingController hintController = TextEditingController();
   final storage = new FlutterSecureStorage();
-  List<Loc> locs = List<Loc>();
   LocationResult _pickedLocation;
   LocationType _loctype = LocationType.is_middle;
   String pin = '';
   String textError = '';
   bool showRadioStart;
+  bool showRadioMiddle;
   bool showRadioFinal;
 
-  _AddLocationState(this.game, this.cluster);
+  _AddLocationState(this.event, this.game, this.cluster, this.options);
 
   @override
   void initState() {
     this.showRadioStart = false;
+    this.showRadioMiddle = false;
     this.showRadioFinal = false;
     checkUser();
     super.initState();
@@ -92,7 +90,7 @@ class _AddLocationState extends State<AddLocation> {
             Position current = await Geolocator.getLastKnownPosition();
             LocationResult result = await showLocationPicker(
               context,
-              DotEnv().env['VAR_NAME'],
+              DotEnv().env['MAP_API_KEY'],
               initialCenter: LatLng(current.latitude, current.longitude),
               myLocationButtonEnabled: true,
               layersButtonEnabled: true,
@@ -143,7 +141,7 @@ class _AddLocationState extends State<AddLocation> {
                   Container(height: 25),
                   Column(
                     children: <Widget>[
-                      if (!showRadioStart)
+                      if (showRadioStart)
                         RadioListTile<LocationType>(
                           title: const Text('Start'),
                           value: LocationType.is_start,
@@ -154,17 +152,18 @@ class _AddLocationState extends State<AddLocation> {
                             });
                           },
                         ),
-                      RadioListTile<LocationType>(
-                        title: const Text('Middle'),
-                        value: LocationType.is_middle,
-                        groupValue: _loctype,
-                        onChanged: (LocationType value) {
-                          setState(() {
-                            _loctype = value;
-                          });
-                        },
-                      ),
-                      if (!showRadioFinal)
+                      if (showRadioMiddle)
+                        RadioListTile<LocationType>(
+                          title: const Text('Middle'),
+                          value: LocationType.is_middle,
+                          groupValue: _loctype,
+                          onChanged: (LocationType value) {
+                            setState(() {
+                              _loctype = value;
+                            });
+                          },
+                        ),
+                      if (showRadioFinal)
                         RadioListTile<LocationType>(
                           title: const Text('Final'),
                           value: LocationType.is_final,
@@ -193,7 +192,10 @@ class _AddLocationState extends State<AddLocation> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (_) => ClusterPage(
-                                          this.game, this.cluster)));
+                                          this.event,
+                                          this.game,
+                                          this.cluster,
+                                          this.options)));
                             });
                           }
                         }),
@@ -207,23 +209,24 @@ class _AddLocationState extends State<AddLocation> {
     );
   }
 
-  void checkStartFinal() {
-    http.get(globals.url + 'locsf/' + this.game.gameId,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          HttpHeaders.authorizationHeader: 'Basic ' + this.pin
-        }).then((res) {
-      if (res.statusCode == 200) {
-        final resJson = jsonDecode(res.body);
-        locs = resJson.map<Loc>((json) => Loc.fromJson(json)).toList();
-        setState(() {
-          locs.forEach((element) {
-            if (element.locStart) this.showRadioStart = false;
-            if (element.locFinal) this.showRadioFinal = false;
-          });
-        });
-      }
-    });
+  void checkLocations() {
+    if (this.options.locnr == 0)
+      setState(() {
+        this.showRadioStart = true;
+      });
+    else if ((this.event.minLoc - this.options.locnr) < 1)
+      setState(() {
+        this.showRadioMiddle = true;
+      });
+    else if ((this.event.maxLoc - this.options.locnr) == 1)
+      setState(() {
+        this.showRadioFinal = true;
+      });
+    else
+      setState(() {
+        this.showRadioMiddle = true;
+        this.showRadioFinal = true;
+      });
   }
 
   Future sendData() async {

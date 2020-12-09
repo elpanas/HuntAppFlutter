@@ -37,9 +37,8 @@ dependencies:
   transparent_image: ^1.0.0
   cached_network_image: ^2.4.1
   flutter_cache_manager: ^2.0.0
-  pdf: ^1.12.0
-  path_provider: ^1.6.24
   flutter_dotenv: ^2.1.0
+  collection: ^1.14.13
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -55,6 +54,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+  assets:
+    - assets/title.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

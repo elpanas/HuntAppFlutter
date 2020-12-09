@@ -54,7 +54,6 @@ class _EventsScreenState extends State<EventsScreen> {
           ? FloatingActionButton(
               child: Icon(Icons.add),
               onPressed: () {
-                // Navigator.pop(context);
                 Navigator.push(
                     context, MaterialPageRoute(builder: (_) => AddEventPage()));
               })
@@ -144,6 +143,7 @@ class _EventsScreenState extends State<EventsScreen> {
       } else {
         setState(() {
           message = 'No events';
+          this.showProgress = false;
         });
       }
     });

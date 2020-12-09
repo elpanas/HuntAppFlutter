@@ -17,6 +17,13 @@ class AddGamePage extends StatelessWidget {
       title: 'Add New Game',
       theme: ThemeData(primarySwatch: Colors.orange),
       home: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
         appBar: AppBar(title: Text('Add New Game')),
         body: AddGameScreen(event),
       ),
@@ -96,26 +103,27 @@ class _AddGameScreenState extends State<AddGameScreen> {
               Container(child: Text(textError)),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Ink(
-                  decoration: const ShapeDecoration(
-                    color: Colors.orange,
-                    shape: CircleBorder(),
+                child: FlatButton(
+                  minWidth: MediaQuery.of(context).size.width / 1.2,
+                  color: Colors.orange,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: IconButton(
-                      icon: Icon(Icons.save),
-                      color: Colors.white,
-                      onPressed: () {
-                        if (_formKey.currentState.validate()) {
-                          sendData().then((value) {
-                            if (value || value == null) {
-                              MaterialPageRoute routeGameList =
-                                  MaterialPageRoute(
-                                      builder: (_) => SingleEventPage(event));
-                              Navigator.push(context, routeGameList);
-                            }
-                          });
+                  onPressed: () {
+                    if (_formKey.currentState.validate()) {
+                      sendData().then((value) {
+                        if (value || value == null) {
+                          MaterialPageRoute routeGameList = MaterialPageRoute(
+                              builder: (_) => SingleEventPage(event));
+                          Navigator.push(context, routeGameList);
                         }
-                      }),
+                      });
+                    }
+                  },
+                  child: Text(
+                    'Save Event',
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
                 ),
               ),
             ],
@@ -172,6 +180,5 @@ class _AddGameScreenState extends State<AddGameScreen> {
         return false;
       }
     });
-    // textError = 'Request in progress...';
   }
 }

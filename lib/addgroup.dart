@@ -4,27 +4,31 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/game.dart';
+import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
 import 'globals.dart' as globals;
 
 class AddGroup extends StatefulWidget {
+  final Event event;
   final Game game;
-  AddGroup(this.game);
+  AddGroup(this.event, this.game);
 
   @override
-  _AddGroupState createState() => _AddGroupState(game);
+  _AddGroupState createState() => _AddGroupState(event, game);
 }
 
 class _AddGroupState extends State<AddGroup> {
+  final Event event;
   final Game game;
-  _AddGroupState(this.game);
+  _AddGroupState(this.event, this.game);
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController playersController = TextEditingController();
   final TextEditingController photoController = TextEditingController();
 
   final storage = new FlutterSecureStorage();
-  bool isadmin = true;
+  String pin = '';
+  bool sendok = false;
   String textError = '';
 
   @override
@@ -39,6 +43,9 @@ class _AddGroupState extends State<AddGroup> {
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
+    nameController.dispose();
+    playersController.dispose();
+    photoController.dispose();
     super.dispose();
   }
 
@@ -51,18 +58,15 @@ class _AddGroupState extends State<AddGroup> {
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
-            sendData().then((value) => {
-                  if (_formKey.currentState.validate())
-                    {
-                      sendData().then((value) {
-                        if (value || value == null) {
-                          MaterialPageRoute routeEvents = MaterialPageRoute(
-                              builder: (_) => GamePage(this.game));
-                          Navigator.push(context, routeEvents);
-                        }
-                      })
-                    }
-                });
+            if (_formKey.currentState.validate()) {
+              sendData();
+              if (this.sendok) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => GamePage(this.event, this.game)));
+              }
+            }
           }),
       body: Column(
         children: <Widget>[
@@ -108,15 +112,13 @@ class _AddGroupState extends State<AddGroup> {
     );
   }
 
-  Future sendData() async {
-    String pin = await storage.read(key: 'pin');
-
+  void sendData() {
     http
         .post(
       globals.url + 'sgame/',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + pin
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
       body: jsonEncode(<String, dynamic>{
         'game_id': this.game.gameId,
@@ -130,13 +132,16 @@ class _AddGroupState extends State<AddGroup> {
         final sessiondata = jsonDecode(res.body);
         setState(() async {
           textError = '';
+          this.sendok = true;
           await storage.write(key: 'idsg', value: sessiondata.idsg);
         });
-        return true;
       } else {
         setState(() => textError = 'An error has occurred');
-        return true;
       }
     });
+  }
+
+  void checkUser() async {
+    await storage.read(key: 'pin').then((value) => {this.pin = value});
   }
 }

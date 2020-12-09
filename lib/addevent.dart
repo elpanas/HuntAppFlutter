@@ -13,6 +13,13 @@ class AddEventPage extends StatelessWidget {
       title: 'Add New Event',
       theme: ThemeData(primarySwatch: Colors.orange),
       home: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
         appBar: AppBar(title: Text('Add New Event')),
         body: AddEventScreen(),
       ),
@@ -75,7 +82,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   return null;
                 },
               ),
-              Container(height: 25),
+              Container(height: 10),
               TextFormField(
                 controller: minlocController,
                 keyboardType: TextInputType.number,
@@ -90,7 +97,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   return null;
                 },
               ),
-              Container(height: 25),
+              Container(height: 10),
               TextFormField(
                 controller: maxlocController,
                 keyboardType: TextInputType.number,
@@ -105,7 +112,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   return null;
                 },
               ),
-              Container(height: 25),
+              Container(height: 10),
               TextFormField(
                 controller: avglocController,
                 keyboardType: TextInputType.number,
@@ -124,21 +131,27 @@ class _AddEventScreenState extends State<AddEventScreen> {
               Container(child: Text(textError)),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: IconButton(
-                    icon: Icon(Icons.save),
-                    color: Colors.orange,
-                    onPressed: () {
-                      if (_formKey.currentState.validate()) {
-                        sendData().then((value) {
-                          if (value || value == null) {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => EventsPage()));
-                          }
-                        });
-                      }
-                    }),
+                child: FlatButton(
+                  minWidth: MediaQuery.of(context).size.width / 1.2,
+                  color: Colors.orange,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  onPressed: () {
+                    if (_formKey.currentState.validate()) {
+                      sendData().then((value) {
+                        if (value || value == null) {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (_) => EventsPage()));
+                        }
+                      });
+                    }
+                  },
+                  child: Text(
+                    'Save Event',
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                ),
               ),
             ],
           ),

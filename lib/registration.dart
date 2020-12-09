@@ -44,8 +44,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController pswController = TextEditingController();
   final storage = FlutterSecureStorage();
-  bool _result = false;
-  var _checked = true; // CAMBIALO IN FALSE DOPO
+  var _checked = false;
   String pin = '';
 
   _RegistrationScreenState(this.login);
