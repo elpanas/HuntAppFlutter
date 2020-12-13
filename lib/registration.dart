@@ -41,6 +41,8 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final login;
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController firstController = TextEditingController();
+  final TextEditingController fullController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController pswController = TextEditingController();
   final storage = FlutterSecureStorage();
@@ -52,6 +54,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
+    firstController.dispose();
+    fullController.dispose();
     nameController.dispose();
     pswController.dispose();
     super.dispose();
@@ -66,6 +70,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
+              if (!login)
+                TextFormField(
+                  controller: firstController,
+                  keyboardType: TextInputType.name,
+                  decoration: InputDecoration(
+                    hintText: 'Type your first name',
+                    hintStyle: TextStyle(fontSize: 18),
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
+                ),
+              if (!login)
+                TextFormField(
+                  controller: fullController,
+                  keyboardType: TextInputType.name,
+                  decoration: InputDecoration(
+                    hintText: 'Type your last name',
+                    hintStyle: TextStyle(fontSize: 18),
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
+                ),
               TextFormField(
                 controller: nameController,
                 keyboardType: TextInputType.name,
@@ -118,7 +152,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
                       if (!login) {
-                        createUser(nameController.text, pswController.text)
+                        createUser(firstController.text, fullController.text,
+                                nameController.text, pswController.text)
                             .then((value) {
                           Navigator.pop(context);
                         });
@@ -141,7 +176,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  Future createUser(String name, String psw) async {
+  Future createUser(String first, String full, String name, String psw) async {
     http
         .post(
       globals.url + 'user',
@@ -149,8 +184,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         'Content-Type': 'application/json; charset=UTF-8'
       },
       body: jsonEncode(<String, dynamic>{
-        'first_name': '',
-        'full_name': '',
+        'first_name': first,
+        'full_name': full,
         'username': base64.encode(utf8.encode(name)),
         'password': base64.encode(utf8.encode(psw)),
         'is_admin': _checked
@@ -160,6 +195,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       if (res.statusCode == 200) {
         await storage.deleteAll();
         await storage.write(key: 'is_admin', value: _checked.toString());
+        await storage.write(key: 'first_name', value: nameController.text);
         await storage.write(
             key: 'pin', value: base64.encode(utf8.encode(name + ':' + psw)));
 

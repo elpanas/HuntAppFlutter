@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_map_location_picker/generated/l10n.dart';
@@ -90,7 +89,7 @@ class _AddLocationState extends State<AddLocation> {
             Position current = await Geolocator.getLastKnownPosition();
             LocationResult result = await showLocationPicker(
               context,
-              DotEnv().env['MAP_API_KEY'],
+              'AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg',
               initialCenter: LatLng(current.latitude, current.longitude),
               myLocationButtonEnabled: true,
               layersButtonEnabled: true,

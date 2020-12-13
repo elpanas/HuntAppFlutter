@@ -46,11 +46,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final storage = new FlutterSecureStorage();
-  final List<String> gameCategories = [
-    'Basic',
-    'Intermediate',
-    'Advanced'
-  ]; // intermediate non va
+  final List<String> gameCategories = ['Basic', 'Intermediate', 'Advanced'];
   String gameCategory = 'Basic';
   String textError = '';
   bool _checked = false;

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addevent.dart';
+import 'package:huntapp/addriddle.dart';
 import 'containers/eventcontainer.dart';
 import 'gameslist.dart';
 import 'globals.dart' as globals;
@@ -32,6 +33,7 @@ class _EventsScreenState extends State<EventsScreen> {
   bool showProgress;
   String pin = '';
   String message = '';
+  String username;
 
   @override
   void initState() {
@@ -49,7 +51,24 @@ class _EventsScreenState extends State<EventsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Events List')),
+      appBar: AppBar(
+        title: Text('Events List'),
+        actions: <Widget>[
+          (isadmin)
+              ? Padding(
+                  padding: EdgeInsets.only(right: 40.0),
+                  child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => AddRiddle()));
+                      },
+                      child: Icon(
+                        Icons.now_widgets,
+                        size: 26.0,
+                      )))
+              : Container()
+        ],
+      ),
       floatingActionButton: (isadmin)
           ? FloatingActionButton(
               child: Icon(Icons.add),

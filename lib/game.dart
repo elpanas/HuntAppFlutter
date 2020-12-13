@@ -6,9 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_static_maps_controller/google_static_maps_controller.dart';
 import 'package:timer_count_down/timer_count_down.dart';
-import 'package:transparent_image/transparent_image.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:huntapp/clusterlist.dart';
 import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
@@ -32,9 +31,11 @@ class _GamePageState extends State<GamePage> {
   final storage = new FlutterSecureStorage();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController solController = TextEditingController();
+  final picker = ImagePicker();
+  String _image;
   String pin = '';
-  bool isadmin = false;
-  bool groupok = false;
+  bool isadmin;
+  bool groupok;
   var idsg = '';
   ActionClass action;
   Riddle riddle;
@@ -42,27 +43,33 @@ class _GamePageState extends State<GamePage> {
   bool showProgress;
   bool showWarning;
   bool showQrScanner;
+  bool showPhotoButton;
   bool showLocationInfo;
   bool showRiddle;
-  bool showRiddleField;
+  bool showRiddleButton;
   bool showCountDown;
   bool showCongrats;
 
   _qrCallback(String code) {
     setState(() {
-      if (code == this.action.actId) setReached();
+      //if (code == this.action.actId) {
+      this.showPhotoButton = true;
+      //}
       this.showQrScanner = false;
     });
   }
 
   @override
   void initState() {
+    isadmin = false;
+    groupok = true;
     showProgress = true;
     showWarning = false;
     showLocationInfo = false;
     showQrScanner = false;
+    showPhotoButton = false;
     showRiddle = false;
-    showRiddleField = true;
+    showRiddleButton = false;
     showCountDown = false;
     showCongrats = false;
     checkUser();
@@ -81,40 +88,46 @@ class _GamePageState extends State<GamePage> {
       appBar: AppBar(
         title: Text(game.gameName),
         actions: <Widget>[
-          Padding(
+          /*Padding(
               padding: EdgeInsets.only(right: 20.0),
               child: GestureDetector(
-                  onTap: () {}, child: Icon(Icons.edit, size: 26.0))),
-          if (isadmin)
-            Padding(
-                padding: EdgeInsets.only(right: 20.0),
-                child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  ClusterList(this.event, this.game)));
-                    },
-                    child: Icon(Icons.storage, size: 26.0))),
+                  onTap: () {}, child: Icon(Icons.edit, size: 26.0))),*/
+          (isadmin)
+              ? Padding(
+                  padding: EdgeInsets.only(right: 20.0),
+                  child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    ClusterList(this.event, this.game)));
+                      },
+                      child: Icon(Icons.storage, size: 26.0)))
+              : Container()
         ],
       ),
       body: Center(
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              if (showProgress) _buildLoader(),
-              if (showWarning) _buildWarning(),
-              if (!groupok) _buildCreateButton(),
-              if (groupok && showLocationInfo) _buildLocation(),
-              if (groupok && showQrScanner) _buildQrCodeReader(),
-              if (groupok && showQrScanner) _buildCancelButton(),
-              if (groupok && showRiddle) _buildRiddle(),
-              if (showCountDown) _buildCounDown(),
-              if (showCongrats) _buildCongrats()
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Container(),
+                if (!groupok) _buildCreateButton(),
+                if (showProgress) _buildLoader(),
+                if (showWarning) _buildWarning(),
+                if (groupok && showLocationInfo) _buildLocation(),
+                if (groupok && showQrScanner) _buildQrCodeReader(),
+                if (groupok && showQrScanner) _buildCancelButton(),
+                if (groupok && showPhotoButton) _buildPhotoButton(),
+                if (groupok && showRiddle) _buildRiddle(),
+                if (showCountDown) _buildCounDown(),
+                if (showCongrats) _buildCongrats()
+              ],
+            ),
           ),
         ),
       ),
@@ -122,20 +135,15 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildLoader() {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height / 1.3,
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
+    return Center(
+      child: CircularProgressIndicator(),
     );
   }
 
   Widget _buildsubtitle() {
     return Text(
       'The location you have to reach:',
-      style: TextStyle(
-        fontSize: 16,
-      ),
+      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }
 
@@ -154,20 +162,17 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildLocation() {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        children: <Widget>[
-          //Image.network(this.action.locImage),
-          _buildsubtitle(),
-          _buildMap(),
-          Text(
-            this.action.locDesc,
-            style: TextStyle(fontSize: 18),
-          ),
-          _buildQrCodeButton(),
-        ],
-      ),
+    return Column(
+      children: <Widget>[
+        //Image.network(this.action.locImage),
+        _buildsubtitle(),
+        _buildMap(),
+        Text(
+          this.action.locDesc,
+          style: TextStyle(fontSize: 18),
+        ),
+        _buildQrCodeButton(),
+      ],
     );
   }
 
@@ -179,7 +184,7 @@ class _GamePageState extends State<GamePage> {
           width: MediaQuery.of(context).size.height / 2,
           height: MediaQuery.of(context).size.height / 2,
           scaleToDevicePixelRatio: true,
-          googleApiKey: "AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg",
+          googleApiKey: 'AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg',
           styles: <MapStyle>[
             MapStyle(
               element: StyleElement.geometry.fill,
@@ -213,7 +218,9 @@ class _GamePageState extends State<GamePage> {
   Widget _buildQrCodeButton() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      child: RaisedButton(
+      child: FlatButton.icon(
+        minWidth: MediaQuery.of(context).size.width / 1.2,
+        icon: Icon(Icons.qr_code_scanner, color: Colors.white),
         color: Colors.orange,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
@@ -224,7 +231,7 @@ class _GamePageState extends State<GamePage> {
             this.showQrScanner = true;
           });
         },
-        child: Text(
+        label: Text(
           'Scan Qr Code',
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
@@ -275,52 +282,75 @@ class _GamePageState extends State<GamePage> {
     ));
   }
 
+  Widget _buildPhotoButton() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: RaisedButton.icon(
+        icon: Icon(Icons.camera_alt, color: Colors.white),
+        color: Colors.orange,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        onPressed: () {
+          getImage();
+        },
+        label: Text(
+          'Send a selfie',
+          style: TextStyle(color: Colors.white, fontSize: 20),
+        ),
+      ),
+    );
+  }
+
   Widget _buildRiddle() {
     return Column(
       children: <Widget>[
-        Text('Solve this riddle', style: TextStyle(fontSize: 18)),
-        /*CachedNetworkImage(
-          imageUrl: globals.imageurl + this.riddle.ridImage,
-          progressIndicatorBuilder: (context, url, downloadProgress) =>
-              CircularProgressIndicator(value: downloadProgress.progress),
-          errorWidget: (context, url, error) => Icon(Icons.error),
-        ),*/
-        /*Image.network(globals.imageurl + this.riddle.ridImage,
-            width: MediaQuery.of(context).size.height / 2,
-            height: MediaQuery.of(context).size.height / 2),*/
-        Text(this.riddle.ridTxt),
+        Text('Solve this riddle',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Image.network(globals.imageurl + this.riddle.ridImage,
+            width: MediaQuery.of(context).size.height / 2.5,
+            height: MediaQuery.of(context).size.height / 2.5),
+        Divider(),
+        Text(this.riddle.ridTxt, style: TextStyle(fontSize: 18)),
         Form(
           key: _formKey,
           child: Column(
             children: [
-              if (showRiddleField)
-                TextFormField(
-                  controller: solController,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(
-                    hintText: 'Type here the solution',
-                    hintStyle: TextStyle(fontSize: 18),
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Please enter some text';
-                    } else if (value.toLowerCase() != this.riddle.ridSol) {
-                      return 'Wrong! Try again in 1 minute';
-                    }
-                    return null;
-                  },
+              TextFormField(
+                controller: solController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  hintText: 'Type the solution here',
+                  hintStyle: TextStyle(fontSize: 18),
                 ),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: IconButton(
-                    icon: Icon(Icons.save),
-                    color: Colors.orange,
-                    onPressed: () {
-                      if (_formKey.currentState.validate()) {
-                        sendRiddle(solController.text.toLowerCase());
-                      }
-                    }),
-              )
+                validator: (value) {
+                  if (value.isEmpty)
+                    return 'Please enter some text';
+                  else if (value.toLowerCase() != this.riddle.ridSol) {
+                    setState(() {
+                      this.showCountDown = true;
+                      this.showRiddleButton = false;
+                    });
+                    return 'Wrong! Wait for 1 minute';
+                  }
+                  return null;
+                },
+              ),
+              Divider(),
+              (showRiddleButton)
+                  ? RaisedButton(
+                      onPressed: () {
+                        if (_formKey.currentState.validate())
+                          sendRiddle(solController.text.toLowerCase());
+                      },
+                      //icon: Icon(Icons.save, color: Colors.white),
+                      child: Text('Send solution',
+                          style: TextStyle(color: Colors.white, fontSize: 20)),
+                      color: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ))
+                  : Container()
             ],
           ),
         ),
@@ -342,7 +372,8 @@ class _GamePageState extends State<GamePage> {
         onFinished: () {
           setState(() {
             this.showCountDown = false;
-            this.showRiddleField = true;
+            this.showRiddleButton = true;
+            this.solController.clear();
           });
         });
   }
@@ -357,6 +388,50 @@ class _GamePageState extends State<GamePage> {
     return Text('You cannot play this game again');
   }
 
+  Future getImage() async {
+    final pickedFile =
+        await picker.getImage(source: ImageSource.camera, imageQuality: 60);
+
+    setState(() {
+      this.showPhotoButton = false;
+      if (pickedFile != null) {
+        _image = pickedFile.path;
+        print(pickedFile.path);
+        this.showProgress = true;
+        sendImage();
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  void sendImage() async {
+    var request =
+        http.MultipartRequest('POST', Uri.parse(globals.url + 'action/gphoto'));
+
+    request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + this.pin;
+    request.fields['ida'] = this.action.actId;
+    request.fields['img'] = 'selfie' + this.action.actId + '.jpg';
+    request.files.add(await http.MultipartFile.fromPath('selfie', _image,
+        contentType: MediaType('image', 'jpeg')));
+
+    await request
+        .send()
+        .then((res) => {if (res.statusCode == HttpStatus.ok) setReached()});
+  }
+
+  void setReached() {
+    http.put(
+      globals.url + 'action/reached/' + this.action.actId,
+      headers: <String, String>{
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+      },
+    ).then((res) {
+      if (res.statusCode == 200) loadRiddle();
+    });
+    this.showProgress = true;
+  }
+
   void checkUser() async {
     this.isadmin = (await storage.read(key: 'is_admin') == 'true');
     await storage
@@ -368,7 +443,6 @@ class _GamePageState extends State<GamePage> {
     http.get(
       globals.url + 'sgame/multiple/' + this.game.gameId,
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
@@ -385,7 +459,6 @@ class _GamePageState extends State<GamePage> {
     http.get(
       globals.url + 'sgame/game/' + this.game.gameId,
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
@@ -396,7 +469,10 @@ class _GamePageState extends State<GamePage> {
           this.groupok = true;
           loadStep();
         });
-      }
+      } else
+        setState(() {
+          this.groupok = false;
+        });
     });
   }
 
@@ -404,7 +480,6 @@ class _GamePageState extends State<GamePage> {
     http.get(
       globals.url + 'action/sgame/' + this.idsg,
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
@@ -427,7 +502,6 @@ class _GamePageState extends State<GamePage> {
     http.get(
       globals.url + 'action/riddle/' + this.action.actId,
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
@@ -442,19 +516,7 @@ class _GamePageState extends State<GamePage> {
       }
     });
     this.showProgress = true;
-  }
-
-  void setReached() {
-    http.put(
-      globals.url + 'action/reached/' + this.action.actId,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
-      },
-    ).then((res) {
-      if (res.statusCode == 200) loadRiddle();
-    });
-    this.showProgress = true;
+    this.showRiddleButton = true;
   }
 
   void sendRiddle(String solution) {
@@ -486,7 +548,7 @@ class _GamePageState extends State<GamePage> {
         });
       } else {
         setState(() {
-          this.showRiddleField = false;
+          this.showRiddleButton = false;
           this.showCountDown = true;
         });
       }

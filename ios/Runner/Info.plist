@@ -4,6 +4,8 @@
 <dict>	
 	<key>NSCameraUsageDescription</key>
 	<string>Explanation on why the camera access is needed.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Explanation on why the library access is needed.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
   	<string>This app needs your location to test the location feature of the Google Maps location picker plugin.</string>
 	<key>CFBundleDevelopmentRegion</key>

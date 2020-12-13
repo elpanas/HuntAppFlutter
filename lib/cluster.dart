@@ -129,8 +129,9 @@ class _ClusterPageState extends State<ClusterPage> {
         locations =
             resJson.map<Location>((json) => Location.fromJson(json)).toList();
         setState(() {
-          locations =
-              locations.where((element) => element.locCluster == cluster);
+          locations = locations
+              .where((element) => element.locCluster == cluster)
+              .toList();
         });
       } else {
         setState(() {

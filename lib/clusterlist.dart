@@ -9,8 +9,9 @@ import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
 import 'containers/locationcontainer.dart';
 import 'containers/optionscontainer.dart';
-import 'package:collection/collection.dart';
+import 'package:path_provider/path_provider.dart';
 import 'globals.dart' as globals;
+import 'package:open_file/open_file.dart';
 
 class ClusterList extends StatefulWidget {
   final Event event;
@@ -30,6 +31,7 @@ class _ClusterListState extends State<ClusterList> {
   List<Cluster> clusters = List<Cluster>();
   List<Location> locations = List<Location>();
   Opts locOptions;
+  Directory dir;
   bool isadmin = true;
   String pin = '';
   String idsg = '';
@@ -49,6 +51,7 @@ class _ClusterListState extends State<ClusterList> {
     this.showQrButton = false;
     this.showAddButton = false;
     this.showProgress = true;
+    _requestDocDirectory();
     super.initState();
   }
 
@@ -56,6 +59,16 @@ class _ClusterListState extends State<ClusterList> {
   void dispose() {
     // Clean up the controller when the widget is disposed.
     super.dispose();
+  }
+
+  void _requestDocDirectory() {
+    getApplicationSupportDirectory().then((value) => setState(() {
+          this.dir = value;
+        }));
+  }
+
+  void _deleteTmpDirectory() {
+    if (this.dir.existsSync()) this.dir.deleteSync(recursive: true);
   }
 
   @override
@@ -67,15 +80,17 @@ class _ClusterListState extends State<ClusterList> {
           (showQrButton) ? _buildQrButton() : (Container()),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => ClusterPage(this.event, this.game,
-                        clusters.length + 1, this.locOptions)));
-          }),
+      floatingActionButton: (showAddButton)
+          ? FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => ClusterPage(this.event, this.game,
+                            clusters.length + 1, this.locOptions)));
+              })
+          : null,
       body: Column(
         children: [
           Expanded(
@@ -116,7 +131,8 @@ class _ClusterListState extends State<ClusterList> {
         padding: EdgeInsets.only(right: 40.0),
         child: GestureDetector(
             onTap: () {
-              createPdf();
+              // createPdf();
+              setQrCodesFlag();
             },
             child: Icon(
               Icons.picture_as_pdf,
@@ -133,19 +149,27 @@ class _ClusterListState extends State<ClusterList> {
     );
   }
 
+  //todo
   void createPdf() {
     http.get(
       globals.url + 'loc/pdf/' + game.gameId,
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) => {
           if (res.statusCode == HttpStatus.ok)
-            {print('CIAO')}
-          else
-            print('NOTHING')
+            {
+              if (this.dir != null)
+                File(this.dir.path + '/' + 'cw_qrcodes.pdf')
+                    .writeAsBytes(res.bodyBytes)
+                    .then((file) => {
+                          this.showProgress = false,
+                          OpenFile.open(this.dir.path + '/' + 'cw_qrcodes.pdf',
+                              type: 'application/pdf')
+                        }),
+            }
         });
+    this.showProgress = true;
   }
 
   void setQrCodesFlag() {
@@ -168,9 +192,8 @@ class _ClusterListState extends State<ClusterList> {
 
   void loadClusters() {
     http.get(
-      globals.url + 'loc/game/' + game.gameId,
+      globals.url + 'loc/clusters/' + game.gameId,
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
@@ -206,30 +229,23 @@ class _ClusterListState extends State<ClusterList> {
         var locs = locations.where((loc) => loc.locStart == true).toList();
         var locf = locations.where((loc) => loc.locFinal == true).toList();
 
-        setState(() {
-          locOptions.locnr = locations.length;
-          locOptions.isstart = (locs.length > 0) ? true : false;
-          locOptions.isfinal = (locf.length > 0) ? true : false;
-        });
+        var locnr = locations.length;
+        var isstart = (locs.length > 0) ? true : false;
+        var isfinal = (locf.length > 0) ? true : false;
 
-        if (locOptions.isfinal) {
+        locOptions = new Opts(locnr, isstart, isfinal);
+
+        if (isfinal) {
           setState(() {
             this.showQrButton = true;
           });
-        } else if (locations.length < this.event.minLoc ||
-            locations.length < this.event.maxLoc) {
+        } else if (locnr < this.event.minLoc || locnr < this.event.maxLoc) {
           setState(() {
             this.showAddButton = false;
           });
         }
 
-        setState(() {
-          clusters = groupBy(locations, (element) => element['cluster'])
-              .keys
-              .map<Cluster>((json) => Cluster.fromJson(json))
-              .toList();
-          this.showProgress = false;
-        });
+        this.showProgress = false;
       } else {
         setState(() {
           message = 'No clusters';
@@ -241,7 +257,8 @@ class _ClusterListState extends State<ClusterList> {
 
   void checkUser() async {
     this.isadmin = (await storage.read(key: 'is_admin') == 'true');
-    await storage.read(key: 'pin').then(
-        (value) => {this.pin = value, /*loadClusters(),*/ loadLocations()});
+    await storage
+        .read(key: 'pin')
+        .then((value) => {this.pin = value, loadClusters(), loadLocations()});
   }
 }

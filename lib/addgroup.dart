@@ -98,14 +98,6 @@ class _AddGroupState extends State<AddGroup> {
               return null;
             },
           ),
-          TextFormField(
-            controller: photoController,
-            keyboardType: TextInputType.url,
-            decoration: InputDecoration(
-              hintText: 'Type the nr of members',
-              hintStyle: TextStyle(fontSize: 18),
-            ),
-          ),
           Text(textError),
         ],
       ),
@@ -124,7 +116,6 @@ class _AddGroupState extends State<AddGroup> {
         'game_id': this.game.gameId,
         'group_name': nameController,
         'group_nr_players': playersController,
-        'group_photo_path': photoController
       }),
     )
         .then((res) {
