@@ -107,13 +107,11 @@ class _AddGameScreenState extends State<AddGameScreen> {
                   ),
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
-                      sendData().then((value) {
-                        if (value || value == null) {
-                          MaterialPageRoute routeGameList = MaterialPageRoute(
-                              builder: (_) => SingleEventPage(event));
-                          Navigator.push(context, routeGameList);
-                        }
-                      });
+                      sendData();
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => SingleEventPage(event)));
                     }
                   },
                   child: Text(
@@ -165,14 +163,8 @@ class _AddGameScreenState extends State<AddGameScreen> {
     )
         .then((res) {
       if (res.statusCode == 200) {
-        setState(() {
-          textError = '';
-        });
         return true;
       } else {
-        setState(() {
-          textError = 'An error has occurred';
-        });
         return false;
       }
     });

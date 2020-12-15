@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:path/path.dart' as path;
 import 'globals.dart' as globals;
 
 class AddRiddle extends StatelessWidget {
@@ -38,7 +39,6 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
   final TextEditingController typeController = TextEditingController();
   final TextEditingController paramController = TextEditingController();
   final TextEditingController solController = TextEditingController();
-  final TextEditingController imgController = TextEditingController();
   // Create storage
   final storage = new FlutterSecureStorage();
   final picker = ImagePicker();
@@ -56,6 +56,7 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
   @override
   void initState() {
     showImgButton = true;
+    _imgName = 'Insert an image';
     checkUser();
     super.initState();
   }
@@ -67,13 +68,11 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
     typeController.dispose();
     paramController.dispose();
     solController.dispose();
-    imgController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
     return SingleChildScrollView(
       child: Form(
         key: _formKey,
@@ -81,37 +80,43 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Level'),
-                value: ridCategory,
-                items: ridCategories.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String newValue) {
-                  setState(() {
-                    ridCategory = newValue;
-                  });
-                },
-              ),
-              Container(height: 10),
-              DropdownButtonFormField<int>(
-                decoration: InputDecoration(labelText: 'Type'),
-                value: ridType,
-                items: ridTypes.map((int value) {
-                  return DropdownMenuItem<int>(
-                    value: value,
-                    child: Text(value.toString()),
-                  );
-                }).toList(),
-                onChanged: (int newValue) {
-                  setState(() {
-                    ridType = newValue;
-                  });
-                },
-              ),
+              Row(children: <Widget>[
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    decoration: InputDecoration(labelText: 'Level'),
+                    value: ridCategory,
+                    items: ridCategories.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String newValue) {
+                      setState(() {
+                        ridCategory = newValue;
+                      });
+                    },
+                  ),
+                ),
+                Container(width: 20),
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    decoration: InputDecoration(labelText: 'Type'),
+                    value: ridType,
+                    items: ridTypes.map((int value) {
+                      return DropdownMenuItem<int>(
+                        value: value,
+                        child: Text(value.toString()),
+                      );
+                    }).toList(),
+                    onChanged: (int newValue) {
+                      setState(() {
+                        ridType = newValue;
+                      });
+                    },
+                  ),
+                ),
+              ]),
               Container(height: 10),
               TextFormField(
                 controller: paramController,
@@ -150,24 +155,29 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
               Container(child: Text(textError)),
               Row(
                 children: <Widget>[
-                  FocusScope(
-                    node: FocusScopeNode(),
+                  Expanded(
                     child: TextFormField(
-                      controller: imgController,
-                      style: theme.textTheme.subtitle1.copyWith(
-                        color: theme.disabledColor,
-                      ),
+                      enabled: false,
                       decoration: InputDecoration(
                         hintText: _imgName,
+                        hintStyle: TextStyle(fontSize: 18),
                       ),
                     ),
                   ),
                   (showImgButton)
-                      ? IconButton(
-                          icon: Icon(Icons.image),
-                          onPressed: () {
-                            getImage();
-                          })
+                      ? Ink(
+                          decoration: const ShapeDecoration(
+                            color: Colors.orange,
+                            shape: CircleBorder(),
+                          ),
+                          child: IconButton(
+                              icon: Icon(
+                                Icons.image_search,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                getImage();
+                              }))
                       : IconButton(
                           icon: Icon(Icons.cancel),
                           onPressed: () {
@@ -176,7 +186,7 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
                               _image = null;
                               _imgName = 'Insert an image';
                             });
-                          })
+                          }),
                 ],
               ),
               Padding(
@@ -218,8 +228,7 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
       this.showImgButton = false;
       if (pickedFile != null) {
         _image = pickedFile.path;
-        _imgName = 'Image Inserted';
-        print(pickedFile.path);
+        _imgName = path.basename(_image);
       } else {
         print('No image selected.');
       }
@@ -234,7 +243,7 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
     request.fields['type'] = typeController.text;
     request.fields['param'] = paramController.text;
     request.fields['solution'] = solController.text;
-    request.fields['image'] = _image;
+    request.fields['image'] = _imgName;
     request.fields['final'] = (_checked) ? 'true' : 'false';
 
     request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + this.pin;

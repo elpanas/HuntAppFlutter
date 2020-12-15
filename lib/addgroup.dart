@@ -33,10 +33,7 @@ class _AddGroupState extends State<AddGroup> {
 
   @override
   void initState() {
-    //checkUser();
-    nameController.dispose();
-    playersController.dispose();
-    photoController.dispose();
+    checkUser();
     super.initState();
   }
 
@@ -52,61 +49,74 @@ class _AddGroupState extends State<AddGroup> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Aggiungi gruppo'),
-      ),
-      floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: () {
-            if (_formKey.currentState.validate()) {
-              sendData();
-              if (this.sendok) {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => GamePage(this.event, this.game)));
-              }
-            }
-          }),
-      body: Column(
-        children: <Widget>[
-          TextFormField(
-            controller: nameController,
-            keyboardType: TextInputType.name,
-            decoration: InputDecoration(
-              hintText: 'Type the name of the group',
-              hintStyle: TextStyle(fontSize: 18),
-            ),
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'Please enter some text';
-              }
-              return null;
-            },
+      appBar: AppBar(title: Text('Aggiungi gruppo')),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                controller: nameController,
+                keyboardType: TextInputType.name,
+                decoration: InputDecoration(
+                  hintText: 'Type the name of the group',
+                  hintStyle: TextStyle(fontSize: 18),
+                ),
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: playersController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Type the nr of members',
+                  hintStyle: TextStyle(fontSize: 18),
+                ),
+                validator: (value) {
+                  if (value.isEmpty || int.parse(value) <= 0) {
+                    return 'Please enter a number > 0';
+                  }
+                  return null;
+                },
+              ),
+              Text(textError),
+              FlatButton(
+                color: Colors.orange,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                onPressed: () {
+                  if (_formKey.currentState.validate()) {
+                    sendData().then((res) => {
+                          if (res.statusCode == 200)
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        GamePage(this.event, this.game)))
+                        });
+                  }
+                },
+                child: Text(
+                  'Create a team',
+                  style: TextStyle(color: Colors.white, fontSize: 20),
+                ),
+              )
+            ],
           ),
-          TextFormField(
-            controller: playersController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              hintText: 'Type the nr of members',
-              hintStyle: TextStyle(fontSize: 18),
-            ),
-            validator: (value) {
-              if (value.isEmpty || int.parse(value) <= 0) {
-                return 'Please enter a number > 0';
-              }
-              return null;
-            },
-          ),
-          Text(textError),
-        ],
+        ),
       ),
     );
   }
 
-  void sendData() {
-    http
-        .post(
+  Future sendData() {
+    print('ciao');
+    return http.post(
       globals.url + 'sgame/',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
@@ -114,23 +124,27 @@ class _AddGroupState extends State<AddGroup> {
       },
       body: jsonEncode(<String, dynamic>{
         'game_id': this.game.gameId,
-        'group_name': nameController,
-        'group_nr_players': playersController,
+        'group_name': nameController.text,
+        'group_nr_players': int.tryParse(playersController.text),
+        'riddle_cat': this.game.gameRidCategory
       }),
-    )
-        .then((res) {
-      if (res.statusCode == 200) {
-        final sessiondata = jsonDecode(res.body);
-        setState(() async {
-          textError = '';
-          this.sendok = true;
-          await storage.write(key: 'idsg', value: sessiondata.idsg);
-        });
-      } else {
-        setState(() => textError = 'An error has occurred');
-      }
-    });
+    );
   }
+  /*
+  bool checkRes(res) {
+    if (res.statusCode == 200) {
+      final sessiondata = jsonDecode(res.body);
+      setState(() async {
+        textError = '';
+        //await storage.write(key: 'idsg', value: sessiondata.idsg);
+      });
+      return true;
+    } else {
+      setState(() => textError = 'An error has occurred');
+      return false;
+    }
+  }
+  */
 
   void checkUser() async {
     await storage.read(key: 'pin').then((value) => {this.pin = value});

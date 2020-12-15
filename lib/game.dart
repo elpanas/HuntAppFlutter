@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_qr_bar_scanner/qr_bar_scanner_camera.dart';
+import 'package:huntapp/addgroup.dart';
 import 'dart:io';
+import 'home.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_static_maps_controller/google_static_maps_controller.dart';
@@ -34,12 +36,13 @@ class _GamePageState extends State<GamePage> {
   final picker = ImagePicker();
   String _image;
   String pin = '';
-  bool isadmin;
-  bool groupok;
   var idsg = '';
   ActionClass action;
   Riddle riddle;
 
+  bool isadmin;
+  bool groupok;
+  bool showActivateButton;
   bool showProgress;
   bool showWarning;
   bool showQrScanner;
@@ -52,15 +55,16 @@ class _GamePageState extends State<GamePage> {
 
   _qrCallback(String code) {
     setState(() {
-      //if (code == this.action.actId) {
-      this.showPhotoButton = true;
-      //}
+      if (code == this.action.actId) {
+        this.showPhotoButton = true;
+      }
       this.showQrScanner = false;
     });
   }
 
   @override
   void initState() {
+    showActivateButton = false;
     isadmin = false;
     groupok = true;
     showProgress = true;
@@ -92,6 +96,15 @@ class _GamePageState extends State<GamePage> {
               padding: EdgeInsets.only(right: 20.0),
               child: GestureDetector(
                   onTap: () {}, child: Icon(Icons.edit, size: 26.0))),*/
+          (showLocationInfo)
+              ? Padding(
+                  padding: EdgeInsets.only(right: 20.0),
+                  child: GestureDetector(
+                      onTap: () {
+                        _showHint();
+                      },
+                      child: Icon(Icons.live_help, size: 26.0)))
+              : Container(),
           (isadmin)
               ? Padding(
                   padding: EdgeInsets.only(right: 20.0),
@@ -116,7 +129,10 @@ class _GamePageState extends State<GamePage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Container(),
-                if (!groupok) _buildCreateButton(),
+                if (showActivateButton && isadmin)
+                  _buildActivateButton(context),
+                if (showActivateButton && !isadmin) _buildWarning(),
+                if (!groupok) _buildCreateButton(context),
                 if (showProgress) _buildLoader(),
                 if (showWarning) _buildWarning(),
                 if (groupok && showLocationInfo) _buildLocation(),
@@ -147,13 +163,34 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  Widget _buildCreateButton() {
-    return RaisedButton(
+  Widget _buildActivateButton(BuildContext context) {
+    return FlatButton(
       color: Colors.orange,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      onPressed: () {},
+      onPressed: () {
+        activateGame();
+      },
+      child: Text(
+        'Activate Game',
+        style: TextStyle(color: Colors.white, fontSize: 20),
+      ),
+    );
+  }
+
+  Widget _buildCreateButton(BuildContext context) {
+    return FlatButton(
+      color: Colors.orange,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      onPressed: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => AddGroup(this.event, this.game)));
+      },
       child: Text(
         'Create a team',
         style: TextStyle(color: Colors.white, fontSize: 20),
@@ -169,7 +206,7 @@ class _GamePageState extends State<GamePage> {
         _buildMap(),
         Text(
           this.action.locDesc,
-          style: TextStyle(fontSize: 18),
+          style: TextStyle(fontSize: 17),
         ),
         _buildQrCodeButton(),
       ],
@@ -178,10 +215,10 @@ class _GamePageState extends State<GamePage> {
 
   Widget _buildMap() {
     return Padding(
-      padding: const EdgeInsets.all(12.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Center(
         child: StaticMap(
-          width: MediaQuery.of(context).size.height / 2,
+          width: MediaQuery.of(context).size.height / 1.5,
           height: MediaQuery.of(context).size.height / 2,
           scaleToDevicePixelRatio: true,
           googleApiKey: 'AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg',
@@ -215,11 +252,35 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  Future<void> _showHint() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Hint'),
+          content: Text(this.action.locHint),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'OK',
+                style: TextStyle(fontSize: 18, color: Colors.orange),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildQrCodeButton() {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(10.0),
       child: FlatButton.icon(
-        minWidth: MediaQuery.of(context).size.width / 1.2,
+        minWidth: MediaQuery.of(context).size.width / 1.3,
         icon: Icon(Icons.qr_code_scanner, color: Colors.white),
         color: Colors.orange,
         shape: RoundedRectangleBorder(
@@ -303,6 +364,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildRiddle() {
+    print(this.riddle.ridSol);
     return Column(
       children: <Widget>[
         Text('Solve this riddle',
@@ -385,7 +447,85 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildWarning() {
-    return Text('You cannot play this game again');
+    return Text('You cannot play this game');
+  }
+
+  void activateGame() {
+    http.put(
+      globals.url + 'game/activate/' + this.game.gameId,
+      headers: <String, String>{
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+      },
+    ).then((res) => {
+          if (res.statusCode == HttpStatus.ok)
+            {
+              setState(() {
+                this.showActivateButton = false;
+              }),
+              checkMultipleGame()
+            }
+        });
+  }
+
+  void checkUser() async {
+    this.isadmin = (await storage.read(key: 'is_admin') == 'true');
+    await storage
+        .read(key: 'pin')
+        .then((value) => {this.pin = value, checkActivate()});
+  }
+
+  void checkActivate() {
+    print(this.game.gameQr);
+    if (this.game.gameActive)
+      checkMultipleGame();
+    else if (this.game.gameQr)
+      setState(() {
+        this.showActivateButton = true;
+        this.showProgress = false;
+      });
+    else
+      setState(() {
+        this.showWarning = true;
+        this.showProgress = false;
+      });
+  }
+
+  void checkMultipleGame() {
+    http.get(
+      globals.url + 'sgame/multiple/' + this.game.gameId,
+      headers: <String, String>{
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+      },
+    ).then((res) {
+      if (res.statusCode == 200)
+        setState(() {
+          this.showWarning = true;
+        });
+      else
+        checkGroup();
+    });
+  }
+
+  void checkGroup() {
+    http.get(
+      globals.url + 'sgame/game/' + this.game.gameId,
+      headers: <String, String>{
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+      },
+    ).then((res) {
+      if (res.statusCode == 200) {
+        final resJson = jsonDecode(res.body);
+        setState(() {
+          this.idsg = resJson['_id'];
+          this.groupok = true;
+          loadStep();
+        });
+      } else
+        setState(() {
+          this.groupok = false;
+          this.showProgress = false;
+        });
+    });
   }
 
   Future getImage() async {
@@ -430,50 +570,6 @@ class _GamePageState extends State<GamePage> {
       if (res.statusCode == 200) loadRiddle();
     });
     this.showProgress = true;
-  }
-
-  void checkUser() async {
-    this.isadmin = (await storage.read(key: 'is_admin') == 'true');
-    await storage
-        .read(key: 'pin')
-        .then((value) => {this.pin = value, checkMultipleGame()});
-  }
-
-  void checkMultipleGame() {
-    http.get(
-      globals.url + 'sgame/multiple/' + this.game.gameId,
-      headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
-      },
-    ).then((res) {
-      if (res.statusCode == 200)
-        setState(() {
-          this.showWarning = true;
-        });
-      else
-        checkGroup();
-    });
-  }
-
-  void checkGroup() {
-    http.get(
-      globals.url + 'sgame/game/' + this.game.gameId,
-      headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
-      },
-    ).then((res) {
-      if (res.statusCode == 200) {
-        final resJson = jsonDecode(res.body);
-        setState(() {
-          this.idsg = resJson['_id'];
-          this.groupok = true;
-          loadStep();
-        });
-      } else
-        setState(() {
-          this.groupok = false;
-        });
-    });
   }
 
   void loadStep() {
@@ -536,15 +632,13 @@ class _GamePageState extends State<GamePage> {
       }),
     )
         .then((res) {
-      if (res.statusCode == 200) {
+      if (res.statusCode == HttpStatus.ok) {
         setState(() {
           this.showRiddle = false;
           if (!this.action.isFinal)
             loadStep();
-          else {
+          else
             setCompleted();
-            this.showCongrats = true;
-          }
         });
       } else {
         setState(() {
@@ -565,6 +659,8 @@ class _GamePageState extends State<GamePage> {
           },
           body: jsonEncode(<String, dynamic>{'ida': this.action.actId}),
         )
-        .then((res) => {if (res.statusCode == 200) {}});
+        .then((res) => {
+              if (res.statusCode == 200) {this.showCongrats = true}
+            });
   }
 }

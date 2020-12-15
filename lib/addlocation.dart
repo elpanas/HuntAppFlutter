@@ -7,8 +7,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_map_location_picker/generated/l10n.dart'
-    as location_picker;
 import 'package:google_map_location_picker/google_map_location_picker.dart';
 import 'package:huntapp/cluster.dart';
 import 'containers/eventcontainer.dart';
@@ -43,11 +41,13 @@ class _AddLocationState extends State<AddLocation> {
   final storage = new FlutterSecureStorage();
   LocationResult _pickedLocation;
   LocationType _loctype = LocationType.is_middle;
+  String _address;
   String pin = '';
-  String textError = '';
   bool showRadioStart;
   bool showRadioMiddle;
   bool showRadioFinal;
+  bool showLocButton;
+  bool sendok;
 
   _AddLocationState(this.event, this.game, this.cluster, this.options);
 
@@ -56,6 +56,8 @@ class _AddLocationState extends State<AddLocation> {
     this.showRadioStart = false;
     this.showRadioMiddle = false;
     this.showRadioFinal = false;
+    this.showLocButton = true;
+    this._address = 'No position inserted';
     checkUser();
     super.initState();
   }
@@ -74,7 +76,6 @@ class _AddLocationState extends State<AddLocation> {
     return MaterialApp(
       theme: ThemeData(primarySwatch: Colors.orange),
       localizationsDelegates: const [
-        location_picker.S.delegate,
         S.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -84,20 +85,12 @@ class _AddLocationState extends State<AddLocation> {
       home: Scaffold(
         appBar: AppBar(title: Text('Add New Location')),
         floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.map),
-          onPressed: () async {
-            Position current = await Geolocator.getLastKnownPosition();
-            LocationResult result = await showLocationPicker(
-              context,
-              'AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg',
-              initialCenter: LatLng(current.latitude, current.longitude),
-              myLocationButtonEnabled: true,
-              layersButtonEnabled: true,
-              desiredAccuracy: LocationAccuracy.best,
-            );
-            setState(() => _pickedLocation = result);
+          child: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
           },
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -119,7 +112,6 @@ class _AddLocationState extends State<AddLocation> {
                       return null;
                     },
                   ),
-                  Container(height: 25),
                   TextFormField(
                     controller: descController,
                     keyboardType: TextInputType.text,
@@ -128,7 +120,6 @@ class _AddLocationState extends State<AddLocation> {
                       hintStyle: TextStyle(fontSize: 18),
                     ),
                   ),
-                  Container(height: 25),
                   TextFormField(
                     controller: hintController,
                     keyboardType: TextInputType.text,
@@ -137,67 +128,117 @@ class _AddLocationState extends State<AddLocation> {
                       hintStyle: TextStyle(fontSize: 18),
                     ),
                   ),
-                  Container(height: 25),
-                  Column(
+                  Container(height: 10),
+                  Row(
                     children: <Widget>[
                       if (showRadioStart)
-                        RadioListTile<LocationType>(
-                          title: const Text('Start'),
-                          value: LocationType.is_start,
-                          groupValue: _loctype,
-                          onChanged: (LocationType value) {
-                            setState(() {
-                              _loctype = value;
-                            });
-                          },
+                        Expanded(
+                          child: RadioListTile<LocationType>(
+                            title: const Text('Start'),
+                            value: LocationType.is_start,
+                            groupValue: _loctype,
+                            onChanged: (LocationType value) {
+                              setState(() {
+                                _loctype = value;
+                              });
+                            },
+                          ),
                         ),
                       if (showRadioMiddle)
-                        RadioListTile<LocationType>(
-                          title: const Text('Middle'),
-                          value: LocationType.is_middle,
-                          groupValue: _loctype,
-                          onChanged: (LocationType value) {
-                            setState(() {
-                              _loctype = value;
-                            });
-                          },
+                        Expanded(
+                          child: RadioListTile<LocationType>(
+                            title: const Text('Middle'),
+                            value: LocationType.is_middle,
+                            groupValue: _loctype,
+                            onChanged: (LocationType value) {
+                              setState(() {
+                                _loctype = value;
+                              });
+                            },
+                          ),
                         ),
                       if (showRadioFinal)
-                        RadioListTile<LocationType>(
-                          title: const Text('Final'),
-                          value: LocationType.is_final,
-                          groupValue: _loctype,
-                          onChanged: (LocationType value) {
-                            setState(() {
-                              _loctype = value;
-                            });
-                          },
+                        Expanded(
+                          child: RadioListTile<LocationType>(
+                            title: const Text('Final'),
+                            value: LocationType.is_final,
+                            groupValue: _loctype,
+                            onChanged: (LocationType value) {
+                              setState(() {
+                                _loctype = value;
+                              });
+                            },
+                          ),
                         )
                     ],
                   ),
-                  Container(child: Text(textError)),
-                  Ink(
-                    decoration: const ShapeDecoration(
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextFormField(
+                          enabled: false,
+                          decoration: InputDecoration(
+                            hintText: _address,
+                            hintStyle: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
+                      (showLocButton)
+                          ? Ink(
+                              decoration: const ShapeDecoration(
+                                color: Colors.orange,
+                                shape: CircleBorder(),
+                              ),
+                              child: IconButton(
+                                  icon: Icon(
+                                    Icons.map,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    getPlace();
+                                  }))
+                          : IconButton(
+                              icon: Icon(Icons.cancel),
+                              onPressed: () {
+                                setState(() {
+                                  this.showLocButton = true;
+                                  _address = null;
+                                  _pickedLocation = null;
+                                });
+                              }),
+                    ],
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20.0),
+                    child: FlatButton(
+                      minWidth: MediaQuery.of(context).size.width / 1.2,
                       color: Colors.orange,
-                      shape: CircleBorder(),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      onPressed: () {
+                        if (_formKey.currentState.validate()) {
+                          sendData().then((res) => {
+                                if (res.statusCode == 200)
+                                  {
+                                    this.options.locnr++,
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) => ClusterPage(
+                                                this.event,
+                                                this.game,
+                                                this.cluster,
+                                                this.options)))
+                                  }
+                              });
+                        }
+                      },
+                      child: Text(
+                        'Save Location',
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
                     ),
-                    child: IconButton(
-                        icon: Icon(Icons.save),
-                        color: Colors.white,
-                        onPressed: () {
-                          if (_formKey.currentState.validate()) {
-                            sendData().then((value) {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => ClusterPage(
-                                          this.event,
-                                          this.game,
-                                          this.cluster,
-                                          this.options)));
-                            });
-                          }
-                        }),
                   ),
                 ],
               ),
@@ -209,34 +250,46 @@ class _AddLocationState extends State<AddLocation> {
   }
 
   void checkLocations() {
-    if (this.options.locnr == 0)
-      setState(() {
+    setState(() {
+      if (this.options.locnr == 0)
         this.showRadioStart = true;
-      });
-    else if ((this.event.minLoc - this.options.locnr) < 1)
-      setState(() {
-        this.showRadioMiddle = true;
-      });
-    else if ((this.event.maxLoc - this.options.locnr) == 1)
-      setState(() {
+      else if (((this.event.maxLoc - this.options.locnr) == 1) &&
+          (this.cluster == this.options.tot_clusters))
         this.showRadioFinal = true;
-      });
-    else
-      setState(() {
+      else if (this.options.locnr < this.event.minLoc)
         this.showRadioMiddle = true;
-        this.showRadioFinal = true;
-      });
+      else {
+        this.showRadioMiddle = true;
+        if (this.cluster == this.options.tot_clusters)
+          this.showRadioFinal = true;
+      }
+    });
+  }
+
+  void getPlace() async {
+    Position current = await Geolocator.getLastKnownPosition();
+    LocationResult result = await showLocationPicker(
+      context,
+      'AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg',
+      initialCenter: LatLng(current.latitude, current.longitude),
+      myLocationButtonEnabled: true,
+      desiredAccuracy: LocationAccuracy.best,
+    );
+    setState(() => {
+          _pickedLocation = result,
+          if (result != null) _address = result.address
+        });
   }
 
   Future sendData() async {
-    http
-        .post(
+    return http.post(
       globals.url + 'loc',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
       body: jsonEncode(<String, dynamic>{
+        'avg_distance': this.event.avgLoc,
         'game_id': this.game.gameId,
         'cluster': this.cluster,
         'name': nameController.text,
@@ -252,22 +305,12 @@ class _AddLocationState extends State<AddLocation> {
           ]
         }
       }),
-    )
-        .then((res) {
-      if (res.statusCode == 200) {
-        setState(() {
-          textError = '';
-        });
-      } else {
-        setState(() {
-          textError = 'An error has occurred';
-        });
-      }
-    });
-    // textError = 'Request in progress...';
+    );
   }
 
   void checkUser() async {
-    await storage.read(key: 'pin').then((value) => {this.pin = value});
+    await storage
+        .read(key: 'pin')
+        .then((value) => {this.pin = value, checkLocations()});
   }
 }

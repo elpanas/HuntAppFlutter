@@ -139,12 +139,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   ),
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
-                      sendData().then((value) {
-                        if (value || value == null) {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => EventsPage()));
-                        }
-                      });
+                      sendData();
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => EventsPage()));
                     }
                   },
                   child: Text(
@@ -164,7 +161,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
     await storage.read(key: 'pin').then((value) => {this.pin = value});
   }
 
-  Future sendData() async {
+  void sendData() async {
     http
         .post(
       globals.url + 'event',
@@ -180,14 +177,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
       }),
     )
         .then((res) {
-      if (res.statusCode == 200) {
-        setState(() {
-          textError = '';
-        });
+      if (res.statusCode == HttpStatus.ok) {
+        // ...
       } else {
-        setState(() {
-          textError = 'An error has occurred';
-        });
+        // error
       }
     });
     // textError = 'Request in progress...';

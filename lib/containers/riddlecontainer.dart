@@ -7,6 +7,6 @@ class Riddle {
     this.ridId = json['idr'];
     this.ridTxt = json['text'];
     this.ridImage = json['riddle_image_path'];
-    this.ridSol = json['riddle_solution'];
+    this.ridSol = json['solution'];
   }
 }

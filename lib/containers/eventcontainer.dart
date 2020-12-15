@@ -8,8 +8,8 @@ class Event {
   Event.fromJson(Map<String, dynamic> json) {
     this.eventId = json['_id'];
     this.eventName = json['name'];
-    this.maxLoc = json['min_locations'];
-    this.minLoc = json['max_locations'];
+    this.minLoc = json['min_locations'];
+    this.maxLoc = json['max_locations'];
     this.avgLoc = json['min_avg_distance'];
     this.userId = json['organizer']['_id'];
     this.userName = json['organizer']['username'];

@@ -31,7 +31,6 @@ class _ClusterPageState extends State<ClusterPage> {
   final storage = new FlutterSecureStorage();
   List<Location> locations = List<Location>();
   String pin = '';
-  bool isadmin = true;
   bool showAddButton = false;
   bool locStartFinalWarn = false;
   String message = '';
@@ -48,7 +47,7 @@ class _ClusterPageState extends State<ClusterPage> {
       title: 'Cluster nr.:' + cluster.toString(),
       theme: ThemeData(primarySwatch: Colors.orange),
       home: Scaffold(
-        appBar: AppBar(title: Text('Cluster nr.:' + cluster.toString())),
+        appBar: AppBar(title: Text('Cluster ' + cluster.toString())),
         floatingActionButton: (this.showAddButton)
             ? FloatingActionButton(
                 child: Icon(Icons.add_location),
@@ -63,7 +62,13 @@ class _ClusterPageState extends State<ClusterPage> {
             : null,
         body: Column(
           children: <Widget>[
-            Text(message),
+            if (message != '')
+              Expanded(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [Text(message)]),
+              ),
             Expanded(
               child: ListView.builder(
                   itemCount: locations.length,
@@ -73,7 +78,7 @@ class _ClusterPageState extends State<ClusterPage> {
                       child: ListTile(
                         tileColor: (locations[index].locStart ||
                                 locations[index].locFinal)
-                            ? Colors.blueAccent.shade50
+                            ? Colors.blue[100]
                             : null,
                         onTap: () {
                           /*MaterialPageRoute routeEvent = MaterialPageRoute(
@@ -83,7 +88,9 @@ class _ClusterPageState extends State<ClusterPage> {
                         },
                         leading: Icon(Icons.location_on),
                         title: Text(
-                          'Location ' + (index + 1).toString(),
+                          (locations[index].locFinal)
+                              ? 'Final location'
+                              : 'Location ' + (index + 1).toString(),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -142,7 +149,6 @@ class _ClusterPageState extends State<ClusterPage> {
   }
 
   void checkUser() async {
-    isadmin = (await storage.read(key: 'is_admin') == 'true');
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, loadLocations(), checkAddButton()});

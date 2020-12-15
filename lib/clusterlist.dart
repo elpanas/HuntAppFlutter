@@ -32,7 +32,6 @@ class _ClusterListState extends State<ClusterList> {
   List<Location> locations = List<Location>();
   Opts locOptions;
   Directory dir;
-  bool isadmin = true;
   String pin = '';
   String idsg = '';
   String message = '';
@@ -107,9 +106,9 @@ class _ClusterListState extends State<ClusterList> {
                                 builder: (_) => ClusterPage(event, game,
                                     clusters[index].clusterNr, locOptions)));
                       },
-                      leading: Icon(Icons.adjust),
+                      leading: Icon(Icons.scatter_plot),
                       title: Text(
-                        'Cluster nr.: ' + clusters[index].clusterNr.toString(),
+                        'Cluster ' + clusters[index].clusterNr.toString(),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -131,7 +130,7 @@ class _ClusterListState extends State<ClusterList> {
         padding: EdgeInsets.only(right: 40.0),
         child: GestureDetector(
             onTap: () {
-              // createPdf();
+              createPdf();
               setQrCodesFlag();
             },
             child: Icon(
@@ -149,7 +148,6 @@ class _ClusterListState extends State<ClusterList> {
     );
   }
 
-  //todo
   void createPdf() {
     http.get(
       globals.url + 'loc/pdf/' + game.gameId,
@@ -174,7 +172,7 @@ class _ClusterListState extends State<ClusterList> {
 
   void setQrCodesFlag() {
     http
-        .put(globals.url + 'game/' + game.gameId,
+        .put(globals.url + 'game/qrc',
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
               HttpHeaders.authorizationHeader: 'Basic ' + this.pin
@@ -192,7 +190,7 @@ class _ClusterListState extends State<ClusterList> {
 
   void loadClusters() {
     http.get(
-      globals.url + 'loc/clusters/' + game.gameId,
+      globals.url + 'loc/clusters/' + this.game.gameId,
       headers: <String, String>{
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
@@ -233,30 +231,28 @@ class _ClusterListState extends State<ClusterList> {
         var isstart = (locs.length > 0) ? true : false;
         var isfinal = (locf.length > 0) ? true : false;
 
-        locOptions = new Opts(locnr, isstart, isfinal);
+        locOptions = Opts(locnr, isstart, isfinal, clusters.length);
 
-        if (isfinal) {
+        if (locOptions.isfinal) {
           setState(() {
             this.showQrButton = true;
           });
-        } else if (locnr < this.event.minLoc || locnr < this.event.maxLoc) {
+        } else {
           setState(() {
-            this.showAddButton = false;
+            this.showAddButton = true;
           });
         }
-
-        this.showProgress = false;
       } else {
+        locOptions = Opts(0, false, false, 0);
         setState(() {
-          message = 'No clusters';
-          this.showProgress = false;
+          this.showAddButton = true;
         });
       }
+      this.showProgress = false;
     });
   }
 
   void checkUser() async {
-    this.isadmin = (await storage.read(key: 'is_admin') == 'true');
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, loadClusters(), loadLocations()});
