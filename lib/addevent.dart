@@ -139,9 +139,13 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   ),
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
-                      sendData();
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => EventsPage()));
+                      sendData().then((res) {
+                        if (res.statusCode == HttpStatus.ok)
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (_) => EventsPage()));
+                        else
+                          _buildError(context);
+                      });
                     }
                   },
                   child: Text(
@@ -161,9 +165,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
     await storage.read(key: 'pin').then((value) => {this.pin = value});
   }
 
-  void sendData() async {
-    http
-        .post(
+  Future sendData() async {
+    return http.post(
       globals.url + 'event',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
@@ -175,14 +178,11 @@ class _AddEventScreenState extends State<AddEventScreen> {
         'maxloc': int.parse(maxlocController.text),
         'avgloc': int.parse(avglocController.text)
       }),
-    )
-        .then((res) {
-      if (res.statusCode == HttpStatus.ok) {
-        // ...
-      } else {
-        // error
-      }
-    });
-    // textError = 'Request in progress...';
+    );
+  }
+
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
   }
 }

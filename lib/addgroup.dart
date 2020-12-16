@@ -93,12 +93,14 @@ class _AddGroupState extends State<AddGroup> {
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
                     sendData().then((res) => {
-                          if (res.statusCode == 200)
+                          if (res.statusCode == HttpStatus.ok)
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (_) =>
                                         GamePage(this.event, this.game)))
+                          else
+                            _buildError(context)
                         });
                   }
                 },
@@ -115,7 +117,6 @@ class _AddGroupState extends State<AddGroup> {
   }
 
   Future sendData() {
-    print('ciao');
     return http.post(
       globals.url + 'sgame/',
       headers: <String, String>{
@@ -130,21 +131,11 @@ class _AddGroupState extends State<AddGroup> {
       }),
     );
   }
-  /*
-  bool checkRes(res) {
-    if (res.statusCode == 200) {
-      final sessiondata = jsonDecode(res.body);
-      setState(() async {
-        textError = '';
-        //await storage.write(key: 'idsg', value: sessiondata.idsg);
-      });
-      return true;
-    } else {
-      setState(() => textError = 'An error has occurred');
-      return false;
-    }
+
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
   }
-  */
 
   void checkUser() async {
     await storage.read(key: 'pin').then((value) => {this.pin = value});

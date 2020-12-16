@@ -107,11 +107,15 @@ class _AddGameScreenState extends State<AddGameScreen> {
                   ),
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
-                      sendData();
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => SingleEventPage(event)));
+                      sendData().then((res) => {
+                            if (res.statusCode == HttpStatus.ok)
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => SingleEventPage(event)))
+                            else
+                              _buildError(context)
+                          });
                     }
                   },
                   child: Text(
@@ -147,8 +151,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
   Future sendData() async {
     String pin = await storage.read(key: 'pin');
 
-    http
-        .post(
+    return http.post(
       globals.url + 'game',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
@@ -160,13 +163,11 @@ class _AddGameScreenState extends State<AddGameScreen> {
         'riddle_category': gameCategory,
         'is_open': _checked
       }),
-    )
-        .then((res) {
-      if (res.statusCode == 200) {
-        return true;
-      } else {
-        return false;
-      }
-    });
+    );
+  }
+
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
   }
 }

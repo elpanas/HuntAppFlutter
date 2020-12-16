@@ -219,7 +219,7 @@ class _AddLocationState extends State<AddLocation> {
                       onPressed: () {
                         if (_formKey.currentState.validate()) {
                           sendData().then((res) => {
-                                if (res.statusCode == 200)
+                                if (res.statusCode == HttpStatus.ok)
                                   {
                                     this.options.locnr++,
                                     Navigator.push(
@@ -231,6 +231,8 @@ class _AddLocationState extends State<AddLocation> {
                                                 this.cluster,
                                                 this.options)))
                                   }
+                                else
+                                  _buildError(context)
                               });
                         }
                       },
@@ -306,6 +308,11 @@ class _AddLocationState extends State<AddLocation> {
         }
       }),
     );
+  }
+
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
   }
 
   void checkUser() async {

@@ -33,7 +33,6 @@ class _ClusterListState extends State<ClusterList> {
   Opts locOptions;
   Directory dir;
   String pin = '';
-  String idsg = '';
   String message = '';
   String urlqrcode = '';
   int locnr;
@@ -76,7 +75,7 @@ class _ClusterListState extends State<ClusterList> {
       appBar: AppBar(
         title: Text(game.gameName),
         actions: <Widget>[
-          (showQrButton) ? _buildQrButton() : (Container()),
+          (showQrButton) ? _buildQrButton(context) : (Container()),
         ],
       ),
       floatingActionButton: (showAddButton)
@@ -119,19 +118,24 @@ class _ClusterListState extends State<ClusterList> {
                   );
                 }),
           ),
+          Text(message),
           if (showProgress) _buildLoader()
         ],
       ),
     );
   }
 
-  Widget _buildQrButton() {
+  Widget _buildQrButton(context) {
     return Padding(
         padding: EdgeInsets.only(right: 40.0),
         child: GestureDetector(
             onTap: () {
-              createPdf();
-              setQrCodesFlag();
+              requestPdf().then((res) => {
+                    if (res.statusCode == HttpStatus.ok)
+                      {createPdf(res), setQrCodesFlag()}
+                    else
+                      _buildError(context)
+                  });
             },
             child: Icon(
               Icons.picture_as_pdf,
@@ -148,26 +152,30 @@ class _ClusterListState extends State<ClusterList> {
     );
   }
 
-  void createPdf() {
-    http.get(
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
+  }
+
+  Future requestPdf() async {
+    this.showProgress = true;
+    return http.get(
       globals.url + 'loc/pdf/' + game.gameId,
       headers: <String, String>{
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
-    ).then((res) => {
-          if (res.statusCode == HttpStatus.ok)
-            {
-              if (this.dir != null)
-                File(this.dir.path + '/' + 'cw_qrcodes.pdf')
-                    .writeAsBytes(res.bodyBytes)
-                    .then((file) => {
-                          this.showProgress = false,
-                          OpenFile.open(this.dir.path + '/' + 'cw_qrcodes.pdf',
-                              type: 'application/pdf')
-                        }),
-            }
-        });
-    this.showProgress = true;
+    );
+  }
+
+  void createPdf(res) {
+    if (this.dir != null)
+      File(this.dir.path + '/' + 'cw_qrcodes.pdf')
+          .writeAsBytes(res.bodyBytes)
+          .then((file) => {
+                this.showProgress = false,
+                OpenFile.open(this.dir.path + '/' + 'cw_qrcodes.pdf',
+                    type: 'application/pdf')
+              });
   }
 
   void setQrCodesFlag() {
@@ -214,7 +222,7 @@ class _ClusterListState extends State<ClusterList> {
 
   void loadLocations() {
     http.get(
-      globals.url + 'loc/game/' + game.gameId,
+      globals.url + 'loc/game/' + this.game.gameId,
       headers: <String, String>{
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },

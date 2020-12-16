@@ -199,8 +199,12 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
                   ),
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
-                      sendData();
-                      Navigator.pop(context);
+                      sendData().then((res) => {
+                            if (res.statusCode == HttpStatus.ok)
+                              Navigator.pop(context)
+                            else
+                              _buildError(context)
+                          });
                     }
                   },
                   child: Text(
@@ -235,7 +239,7 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
     });
   }
 
-  void sendData() async {
+  Future sendData() async {
     var request =
         http.MultipartRequest('POST', Uri.parse(globals.url + 'riddle/rphoto'));
 
@@ -251,6 +255,11 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
     request.files.add(await http.MultipartFile.fromPath('riddle', _image,
         contentType: MediaType('image', 'png')));
 
-    await request.send();
+    return await request.send();
+  }
+
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
   }
 }

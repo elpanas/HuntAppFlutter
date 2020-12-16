@@ -104,6 +104,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 controller: nameController,
                 keyboardType: TextInputType.name,
                 decoration: InputDecoration(
+                  icon: Icon(Icons.account_circle),
                   hintText: 'Type the username',
                   hintStyle: TextStyle(fontSize: 18),
                 ),
@@ -119,6 +120,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 controller: pswController,
                 keyboardType: TextInputType.visiblePassword,
                 decoration: InputDecoration(
+                  icon: Icon(Icons.lock),
                   hintText: 'Type your password',
                   hintStyle: TextStyle(fontSize: 18),
                 ),
@@ -154,13 +156,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       if (!login) {
                         createUser(firstController.text, fullController.text,
                                 nameController.text, pswController.text)
-                            .then((value) {
-                          Navigator.pop(context);
+                            .then((res) {
+                          if (res.statusCode == HttpStatus.ok) {
+                            setVars();
+                            Navigator.pop(context);
+                          }
                         });
                       } else
                         checkUser(nameController.text, pswController.text)
-                            .then((value) {
-                          Navigator.pop(context);
+                            .then((res) {
+                          if (res.statusCode == HttpStatus.ok) {
+                            setVars();
+                            Navigator.pop(context);
+                          }
                         });
                     }
                   },
@@ -168,7 +176,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       borderRadius: BorderRadius.circular(10.0)),
                 ),
               ),
-              //Container(child: Text(result)),
             ],
           ),
         ),
@@ -177,8 +184,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future createUser(String first, String full, String name, String psw) async {
-    http
-        .post(
+    return http.post(
       globals.url + 'user',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8'
@@ -190,43 +196,31 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         'password': base64.encode(utf8.encode(psw)),
         'is_admin': _checked
       }),
-    )
-        .then((res) async {
-      if (res.statusCode == 200) {
-        await storage.deleteAll();
-        await storage.write(key: 'is_admin', value: _checked.toString());
-        await storage.write(key: 'first_name', value: nameController.text);
-        await storage.write(
-            key: 'pin', value: base64.encode(utf8.encode(name + ':' + psw)));
+    );
+  }
 
-        setState(() {
-          this.pin = base64.encode(utf8.encode(name + ':' + psw));
-        });
-      }
+  void setVars() async {
+    await storage.deleteAll();
+    await storage.write(key: 'is_admin', value: _checked.toString());
+    await storage.write(
+        key: 'pin',
+        value: base64.encode(
+            utf8.encode(nameController.text + ':' + pswController.text)));
+
+    setState(() {
+      this.pin = base64
+          .encode(utf8.encode(nameController.text + ':' + pswController.text));
     });
-
-    //result = 'Request in progress...';
   }
 
   Future checkUser(String name, String psw) async {
-    http.get(
+    var pin = base64.encode(utf8.encode(name + ':' + psw));
+    return http.get(
       globals.url + 'user/login',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         HttpHeaders.authorizationHeader: 'Basic ' + pin
       },
-    ).then((res) async {
-      print(res.statusCode);
-      if (res.statusCode == 200) {
-        await storage.deleteAll();
-        await storage.write(key: 'is_admin', value: _checked.toString());
-        await storage.write(
-            key: 'pin', value: base64.encode(utf8.encode(name + ':' + psw)));
-
-        setState(() {
-          this.pin = base64.encode(utf8.encode(name + ':' + psw));
-        });
-      }
-    });
+    );
   }
 }

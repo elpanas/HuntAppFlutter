@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_qr_bar_scanner/qr_bar_scanner_camera.dart';
 import 'package:huntapp/addgroup.dart';
 import 'dart:io';
-import 'home.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_static_maps_controller/google_static_maps_controller.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:timer_count_down/timer_count_down.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
@@ -36,6 +37,7 @@ class _GamePageState extends State<GamePage> {
   final picker = ImagePicker();
   String _image;
   String pin = '';
+  Directory dir;
   var idsg = '';
   ActionClass action;
   Riddle riddle;
@@ -77,6 +79,7 @@ class _GamePageState extends State<GamePage> {
     showCountDown = false;
     showCongrats = false;
     checkUser();
+    _requestDocDirectory();
     super.initState();
   }
 
@@ -84,6 +87,12 @@ class _GamePageState extends State<GamePage> {
   void dispose() {
     solController.dispose();
     super.dispose();
+  }
+
+  void _requestDocDirectory() {
+    getApplicationSupportDirectory().then((value) => setState(() {
+          this.dir = value;
+        }));
   }
 
   @override
@@ -517,6 +526,7 @@ class _GamePageState extends State<GamePage> {
         final resJson = jsonDecode(res.body);
         setState(() {
           this.idsg = resJson['_id'];
+          print('IDSG: ' + this.idsg);
           this.groupok = true;
           loadStep();
         });
@@ -657,10 +667,37 @@ class _GamePageState extends State<GamePage> {
             'Content-Type': 'application/json; charset=UTF-8',
             HttpHeaders.authorizationHeader: 'Basic ' + this.pin
           },
-          body: jsonEncode(<String, dynamic>{'ida': this.action.actId}),
+          body: jsonEncode(<String, dynamic>{'idsg': this.idsg}),
         )
         .then((res) => {
-              if (res.statusCode == 200) {this.showCongrats = true}
+              if (res.statusCode == 200)
+                {loadCertificate(), this.showCongrats = true}
             });
+  }
+
+  void loadCertificate() {
+    http.get(
+      globals.url + 'sgame/pdf/' + this.game.gameId,
+      headers: <String, String>{
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+      },
+    ).then((res) => {
+          if (res.statusCode == HttpStatus.ok)
+            {
+              if (this.dir != null)
+                File(this.dir.path + '/' + this.idsg + '-certificate.pdf')
+                    .writeAsBytes(res.bodyBytes)
+                    .then((file) => {
+                          this.showProgress = false,
+                          OpenFile.open(
+                              this.dir.path +
+                                  '/' +
+                                  this.idsg +
+                                  '-certificate.pdf',
+                              type: 'application/pdf')
+                        }),
+            }
+        });
+    this.showProgress = true;
   }
 }
