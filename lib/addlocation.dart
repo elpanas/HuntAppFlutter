@@ -74,7 +74,18 @@ class _AddLocationState extends State<AddLocation> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(primarySwatch: Colors.orange),
+      theme:
+          ThemeData(primarySwatch: Colors.orange, brightness: Brightness.light),
+      darkTheme: ThemeData(
+        primarySwatch: Colors.orange,
+        primaryColor: Colors.orange,
+        brightness: Brightness.dark,
+        backgroundColor: const Color(0xFF212121),
+        accentColor: Colors.orangeAccent,
+        accentIconTheme: IconThemeData(color: Colors.orange),
+        dividerColor: Colors.black12,
+      ),
+      themeMode: ThemeMode.dark,
       localizationsDelegates: const [
         S.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -271,12 +282,11 @@ class _AddLocationState extends State<AddLocation> {
   void getPlace() async {
     Position current = await Geolocator.getLastKnownPosition();
     LocationResult result = await showLocationPicker(
-      context,
-      'AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg',
-      initialCenter: LatLng(current.latitude, current.longitude),
-      myLocationButtonEnabled: true,
-      desiredAccuracy: LocationAccuracy.best,
-    );
+        context, 'AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg',
+        initialCenter: LatLng(current.latitude, current.longitude),
+        myLocationButtonEnabled: true,
+        desiredAccuracy: LocationAccuracy.best,
+        mapStylePath: 'assets/styles/mapStyle.json');
     setState(() => {
           _pickedLocation = result,
           if (result != null) _address = result.address

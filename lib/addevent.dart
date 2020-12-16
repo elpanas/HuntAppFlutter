@@ -11,7 +11,18 @@ class AddEventPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Add New Event',
-      theme: ThemeData(primarySwatch: Colors.orange),
+      theme:
+          ThemeData(primarySwatch: Colors.orange, brightness: Brightness.light),
+      darkTheme: ThemeData(
+        primarySwatch: Colors.orange,
+        primaryColor: Colors.orange,
+        brightness: Brightness.dark,
+        backgroundColor: const Color(0xFF212121),
+        accentColor: Colors.orangeAccent,
+        accentIconTheme: IconThemeData(color: Colors.orange),
+        dividerColor: Colors.black12,
+      ),
+      themeMode: ThemeMode.dark,
       home: Scaffold(
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.arrow_back),

@@ -14,7 +14,20 @@ class EventsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Events List',
-      theme: ThemeData(primarySwatch: Colors.orange),
+      theme: ThemeData(
+          primarySwatch: Colors.orange,
+          brightness: Brightness.light,
+          backgroundColor: Color(0x0FF1A237E)),
+      darkTheme: ThemeData(
+        primarySwatch: Colors.orange,
+        primaryColor: Colors.orange,
+        brightness: Brightness.dark,
+        backgroundColor: const Color(0xFF212121),
+        accentColor: Colors.orangeAccent,
+        accentIconTheme: IconThemeData(color: Colors.orange),
+        dividerColor: Colors.black12,
+      ),
+      themeMode: ThemeMode.dark,
       home: EventsScreen(),
     );
   }
@@ -145,27 +158,34 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   void loadEvents() async {
-    http.get(
-      globals.url + 'event',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
-      },
-    ).then((res) {
-      if (res.statusCode == 200) {
-        final resJson = jsonDecode(res.body);
-        events = resJson.map<Event>((json) => Event.fromJson(json)).toList();
-        setState(() {
-          events = events;
-          this.showProgress = false;
-        });
-      } else {
-        setState(() {
-          message = 'No events';
-          this.showProgress = false;
-        });
-      }
-    });
+    try {
+      http.get(
+        globals.url + 'event',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        },
+      ).then((res) {
+        if (res.statusCode == 200) {
+          final resJson = jsonDecode(res.body);
+          events = resJson.map<Event>((json) => Event.fromJson(json)).toList();
+          setState(() {
+            events = events;
+            this.showProgress = false;
+          });
+        } else {
+          setState(() {
+            message = 'No events';
+            this.showProgress = false;
+          });
+        }
+      });
+    } catch (_) {
+      setState(() {
+        message = 'No events';
+        this.showProgress = false;
+      });
+    }
   }
 
   void searchEvents(search) {

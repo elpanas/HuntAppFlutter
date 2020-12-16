@@ -57,9 +57,11 @@ class _GamePageState extends State<GamePage> {
 
   _qrCallback(String code) {
     setState(() {
-      if (code == this.action.actId) {
+      print(this.action.actId);
+      if (code == this.action.locId)
         this.showPhotoButton = true;
-      }
+      else
+        this.showLocationInfo = true;
       this.showQrScanner = false;
     });
   }
