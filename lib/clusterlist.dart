@@ -160,7 +160,7 @@ class _ClusterListState extends State<ClusterList> {
   Future requestPdf() async {
     this.showProgress = true;
     return http.get(
-      globals.url + 'loc/pdf/' + game.gameId,
+      globals.url + 'loc/pdf/' + this.game.gameId,
       headers: <String, String>{
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },

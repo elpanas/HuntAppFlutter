@@ -24,7 +24,8 @@ class EventsPage extends StatelessWidget {
         brightness: Brightness.dark,
         backgroundColor: const Color(0xFF212121),
         accentColor: Colors.orangeAccent,
-        accentIconTheme: IconThemeData(color: Colors.orange),
+        floatingActionButtonTheme:
+            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
         dividerColor: Colors.black12,
       ),
       themeMode: ThemeMode.dark,
@@ -120,7 +121,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                 builder: (_) =>
                                     SingleEventPage(events[index])));
                       },
-                      leading: Icon(Icons.adjust),
+                      leading: Icon(Icons.event),
                       title: Text(
                         events[index].eventName,
                         style: TextStyle(

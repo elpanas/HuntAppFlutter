@@ -14,7 +14,7 @@ class AddGamePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Add New Game',
+      title: 'New Game',
       theme:
           ThemeData(primarySwatch: Colors.orange, brightness: Brightness.light),
       darkTheme: ThemeData(
@@ -35,7 +35,7 @@ class AddGamePage extends StatelessWidget {
           },
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-        appBar: AppBar(title: Text('Add New Game')),
+        appBar: AppBar(title: Text('New Game')),
         body: AddGameScreen(event),
       ),
     );
@@ -130,7 +130,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
                     }
                   },
                   child: Text(
-                    'Save Event',
+                    'Save Game',
                     style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
                 ),

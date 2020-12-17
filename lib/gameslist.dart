@@ -24,12 +24,13 @@ class _SingleEventPageState extends State<SingleEventPage> {
   final storage = new FlutterSecureStorage();
   final TextEditingController searchController = TextEditingController();
   List<Game> games = List<Game>();
-  bool isadmin = true;
+  bool isadmin;
   String pin = '';
   String message = '';
 
   @override
   void initState() {
+    this.isadmin = false;
     checkUser();
     super.initState();
   }
@@ -93,7 +94,7 @@ class _SingleEventPageState extends State<SingleEventPage> {
                                 builder: (_) =>
                                     GamePage(this.event, games[index])));
                       },
-                      leading: Icon(Icons.adjust),
+                      leading: Icon(Icons.gamepad),
                       title: Text(
                         games[index].gameName,
                         style: TextStyle(
@@ -112,6 +113,8 @@ class _SingleEventPageState extends State<SingleEventPage> {
   }
 
   void checkUser() async {
+    this.isadmin = (await storage.read(key: 'username') == event.userName);
+    print(this.isadmin);
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, loadGames()});

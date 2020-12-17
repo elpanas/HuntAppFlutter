@@ -7,7 +7,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hunting Treasure',
+      title: 'Code Hunting Game',
       theme: ThemeData(
           primarySwatch: Colors.orange,
           brightness: Brightness.light,

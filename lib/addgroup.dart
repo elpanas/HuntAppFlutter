@@ -39,7 +39,6 @@ class _AddGroupState extends State<AddGroup> {
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     nameController.dispose();
     playersController.dispose();
     photoController.dispose();

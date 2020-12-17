@@ -10,7 +10,7 @@ class AddEventPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Add New Event',
+      title: 'New Event',
       theme:
           ThemeData(primarySwatch: Colors.orange, brightness: Brightness.light),
       darkTheme: ThemeData(
@@ -31,7 +31,7 @@ class AddEventPage extends StatelessWidget {
           },
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-        appBar: AppBar(title: Text('Add New Event')),
+        appBar: AppBar(title: Text('New Event')),
         body: AddEventScreen(),
       ),
     );
@@ -51,6 +51,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final TextEditingController avglocController = TextEditingController();
   // Create storage
   final storage = new FlutterSecureStorage();
+  bool isadmin;
   String pin = '';
   String textError = '';
 
@@ -173,6 +174,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   }
 
   void checkUser() async {
+    this.isadmin = (await storage.read(key: 'is_admin') == 'true');
     await storage.read(key: 'pin').then((value) => {this.pin = value});
   }
 

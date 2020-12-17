@@ -240,10 +240,10 @@ class _AddRiddleScreenState extends State<AddRiddleScreen> {
         await picker.getImage(source: ImageSource.gallery, imageQuality: 60);
 
     setState(() {
-      this.showImgButton = false;
       if (pickedFile != null) {
         _image = pickedFile.path;
         _imgName = path.basename(_image);
+        this.showImgButton = false;
       } else {
         print('No image selected.');
       }

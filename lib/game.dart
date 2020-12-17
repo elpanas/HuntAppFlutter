@@ -38,7 +38,7 @@ class _GamePageState extends State<GamePage> {
   String _image;
   String pin = '';
   Directory dir;
-  var idsg = '';
+  String idsg = '';
   ActionClass action;
   Riddle riddle;
 
@@ -152,7 +152,7 @@ class _GamePageState extends State<GamePage> {
                 if (groupok && showPhotoButton) _buildPhotoButton(),
                 if (groupok && showRiddle) _buildRiddle(),
                 if (showCountDown) _buildCounDown(),
-                if (showCongrats) _buildCongrats()
+                if (showCongrats) _buildCongrats(context)
               ],
             ),
           ),
@@ -251,7 +251,7 @@ class _GamePageState extends State<GamePage> {
           ],
           markers: <Marker>[
             Marker(
-              color: Colors.lightBlue,
+              color: Colors.orange,
               label: "T",
               locations: [
                 Location(this.action.locLatitude, this.action.locLongitude),
@@ -364,6 +364,9 @@ class _GamePageState extends State<GamePage> {
           borderRadius: BorderRadius.circular(10),
         ),
         onPressed: () {
+          setState(() {
+            this.showPhotoButton = false;
+          });
           getImage();
         },
         label: Text(
@@ -414,7 +417,7 @@ class _GamePageState extends State<GamePage> {
                   ? RaisedButton(
                       onPressed: () {
                         if (_formKey.currentState.validate())
-                          sendRiddle(solController.text.toLowerCase());
+                          sendRiddle(solController.text.toLowerCase(), context);
                       },
                       //icon: Icon(Icons.save, color: Colors.white),
                       child: Text('Send solution',
@@ -451,9 +454,40 @@ class _GamePageState extends State<GamePage> {
         });
   }
 
-  Widget _buildCongrats() {
+  Widget _buildCongrats(BuildContext context) {
     return Center(
-      child: Text('Congratulations!'),
+      child: Column(children: [
+        Text(
+          'Congratulations!',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        Container(height: 10),
+        Text(
+          'Click the button below to download your certificate',
+          style: TextStyle(fontSize: 12),
+        ),
+        Divider(),
+        FlatButton.icon(
+            onPressed: () {
+              loadCertificate(context);
+            },
+            minWidth: MediaQuery.of(context).size.width / 1.3,
+            color: Colors.orange,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            icon: Icon(
+              Icons.file_download,
+              color: Colors.black,
+            ),
+            label: Text('Download your certificate!',
+                style: TextStyle(color: Colors.black))),
+        Divider(),
+        Text(
+          'Take care of saving a local copy of it, please',
+          style: TextStyle(fontSize: 12),
+        ),
+      ]),
     );
   }
 
@@ -479,14 +513,13 @@ class _GamePageState extends State<GamePage> {
   }
 
   void checkUser() async {
-    this.isadmin = (await storage.read(key: 'is_admin') == 'true');
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, checkActivate()});
+    this.isadmin = (await storage.read(key: 'username') == event.userName);
   }
 
   void checkActivate() {
-    print(this.game.gameQr);
     if (this.game.gameActive)
       checkMultipleGame();
     else if (this.game.gameQr)
@@ -508,12 +541,13 @@ class _GamePageState extends State<GamePage> {
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
-      if (res.statusCode == 200)
+      if (res.statusCode == HttpStatus.ok)
+        checkGroup();
+      else
         setState(() {
           this.showWarning = true;
+          this.showProgress = false;
         });
-      else
-        checkGroup();
     });
   }
 
@@ -528,7 +562,6 @@ class _GamePageState extends State<GamePage> {
         final resJson = jsonDecode(res.body);
         setState(() {
           this.idsg = resJson['_id'];
-          print('IDSG: ' + this.idsg);
           this.groupok = true;
           loadStep();
         });
@@ -545,10 +578,8 @@ class _GamePageState extends State<GamePage> {
         await picker.getImage(source: ImageSource.camera, imageQuality: 60);
 
     setState(() {
-      this.showPhotoButton = false;
       if (pickedFile != null) {
         _image = pickedFile.path;
-        print(pickedFile.path);
         this.showProgress = true;
         sendImage();
       } else {
@@ -591,12 +622,12 @@ class _GamePageState extends State<GamePage> {
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
-      if (res.statusCode == 200) {
+      if (res.statusCode == HttpStatus.ok) {
         final resJson = jsonDecode(res.body);
         action = ActionClass.fromJson(resJson);
         setState(() {
           action = action;
-          if (this.action.actReach == null) {
+          if (action.actReach == null) {
             this.showLocationInfo = true;
             this.showProgress = false;
           } else
@@ -613,7 +644,7 @@ class _GamePageState extends State<GamePage> {
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
-      if (res.statusCode == 200) {
+      if (res.statusCode == HttpStatus.ok) {
         final resJson = jsonDecode(res.body);
         riddle = Riddle.fromJson(resJson);
         setState(() {
@@ -627,7 +658,7 @@ class _GamePageState extends State<GamePage> {
     this.showRiddleButton = true;
   }
 
-  void sendRiddle(String solution) {
+  void sendRiddle(String solution, BuildContext context) {
     http
         .put(
       globals.url + 'action/solution',
@@ -646,11 +677,12 @@ class _GamePageState extends State<GamePage> {
         .then((res) {
       if (res.statusCode == HttpStatus.ok) {
         setState(() {
+          solController.clear();
           this.showRiddle = false;
           if (!this.action.isFinal)
             loadStep();
           else
-            setCompleted();
+            setCompleted(context);
         });
       } else {
         setState(() {
@@ -661,10 +693,10 @@ class _GamePageState extends State<GamePage> {
     });
   }
 
-  void setCompleted() {
+  void setCompleted(BuildContext context) {
     http
         .put(
-          globals.url + 'sgame/complete',
+          globals.url + 'sgame/completed',
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
             HttpHeaders.authorizationHeader: 'Basic ' + this.pin
@@ -672,14 +704,14 @@ class _GamePageState extends State<GamePage> {
           body: jsonEncode(<String, dynamic>{'idsg': this.idsg}),
         )
         .then((res) => {
-              if (res.statusCode == 200)
-                {loadCertificate(), this.showCongrats = true}
+              if (res.statusCode == HttpStatus.ok)
+                {loadCertificate(context), this.showCongrats = true}
             });
   }
 
-  void loadCertificate() {
+  void loadCertificate(BuildContext context) {
     http.get(
-      globals.url + 'sgame/pdf/' + this.game.gameId,
+      globals.url + 'sgame/pdf/' + this.idsg,
       headers: <String, String>{
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
@@ -699,7 +731,14 @@ class _GamePageState extends State<GamePage> {
                               type: 'application/pdf')
                         }),
             }
+          else
+            _buildError(context)
         });
     this.showProgress = true;
+  }
+
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
   }
 }

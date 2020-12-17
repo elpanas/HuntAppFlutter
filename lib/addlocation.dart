@@ -94,7 +94,7 @@ class _AddLocationState extends State<AddLocation> {
       ],
       supportedLocales: const <Locale>[Locale('en', ''), Locale('it', '')],
       home: Scaffold(
-        appBar: AppBar(title: Text('Add New Location')),
+        appBar: AppBar(title: Text('New Location')),
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.arrow_back),
           onPressed: () {
