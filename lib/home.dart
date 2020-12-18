@@ -17,8 +17,6 @@ class HomePage extends StatelessWidget {
         primaryColor: Colors.indigo,
         brightness: Brightness.dark,
         backgroundColor: const Color(0xFF212121),
-        accentColor: Colors.white,
-        accentIconTheme: IconThemeData(color: Colors.orange),
         dividerColor: Colors.black12,
       ),
       themeMode: ThemeMode.dark,

@@ -22,8 +22,8 @@ class AddGamePage extends StatelessWidget {
         primaryColor: Colors.orange,
         brightness: Brightness.dark,
         backgroundColor: const Color(0xFF212121),
-        accentColor: Colors.orangeAccent,
-        accentIconTheme: IconThemeData(color: Colors.orange),
+        floatingActionButtonTheme:
+            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
         dividerColor: Colors.black12,
       ),
       themeMode: ThemeMode.dark,
@@ -171,6 +171,7 @@ class _AddGameScreenState extends State<AddGameScreen> {
       body: jsonEncode(<String, dynamic>{
         'event_id': event.eventId,
         'name': nameController.text,
+        'organizer': this.event.userId,
         'riddle_category': gameCategory,
         'is_open': _checked
       }),

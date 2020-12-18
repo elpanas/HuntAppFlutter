@@ -56,8 +56,8 @@ class _AddGroupState extends State<AddGroup> {
         primaryColor: Colors.orange,
         brightness: Brightness.dark,
         backgroundColor: const Color(0xFF212121),
-        accentColor: Colors.orangeAccent,
-        accentIconTheme: IconThemeData(color: Colors.orange),
+        floatingActionButtonTheme:
+            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
         dividerColor: Colors.black12,
       ),
       themeMode: ThemeMode.dark,

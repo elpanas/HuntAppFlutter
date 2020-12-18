@@ -52,8 +52,8 @@ class _ClusterPageState extends State<ClusterPage> {
         primaryColor: Colors.orange,
         brightness: Brightness.dark,
         backgroundColor: const Color(0xFF212121),
-        accentColor: Colors.orangeAccent,
-        accentIconTheme: IconThemeData(color: Colors.orange),
+        floatingActionButtonTheme:
+            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
         dividerColor: Colors.black12,
       ),
       themeMode: ThemeMode.dark,
@@ -61,7 +61,7 @@ class _ClusterPageState extends State<ClusterPage> {
         appBar: AppBar(title: Text('Cluster ' + cluster.toString())),
         floatingActionButton: (this.showAddButton)
             ? FloatingActionButton(
-                child: Icon(Icons.add_location),
+                child: Icon(Icons.add),
                 onPressed: () {
                   Navigator.push(
                       context,

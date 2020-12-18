@@ -118,7 +118,7 @@ class _ClusterListState extends State<ClusterList> {
                   );
                 }),
           ),
-          Text(message),
+          Expanded(child: Text(message)),
           if (showProgress) _buildLoader()
         ],
       ),

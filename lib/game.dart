@@ -37,8 +37,8 @@ class _GamePageState extends State<GamePage> {
   final picker = ImagePicker();
   String _image;
   String pin = '';
-  Directory dir;
   String idsg = '';
+  Directory dir;
   ActionClass action;
   Riddle riddle;
 
@@ -57,7 +57,6 @@ class _GamePageState extends State<GamePage> {
 
   _qrCallback(String code) {
     setState(() {
-      print(this.action.actId);
       if (code == this.action.locId)
         this.showPhotoButton = true;
       else
@@ -127,7 +126,7 @@ class _GamePageState extends State<GamePage> {
                                 builder: (_) =>
                                     ClusterList(this.event, this.game)));
                       },
-                      child: Icon(Icons.storage, size: 26.0)))
+                      child: Icon(Icons.blur_circular, size: 26.0)))
               : Container()
         ],
       ),
@@ -144,7 +143,7 @@ class _GamePageState extends State<GamePage> {
                   _buildActivateButton(context),
                 if (showActivateButton && !isadmin) _buildWarning(),
                 if (!groupok) _buildCreateButton(context),
-                if (showProgress) _buildLoader(),
+                if (showProgress) Center(child: CircularProgressIndicator()),
                 if (showWarning) _buildWarning(),
                 if (groupok && showLocationInfo) _buildLocation(),
                 if (groupok && showQrScanner) _buildQrCodeReader(),
@@ -158,12 +157,6 @@ class _GamePageState extends State<GamePage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildLoader() {
-    return Center(
-      child: CircularProgressIndicator(),
     );
   }
 
@@ -495,6 +488,11 @@ class _GamePageState extends State<GamePage> {
     return Text('You cannot play this game');
   }
 
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
+  }
+
   void activateGame() {
     http.put(
       globals.url + 'game/activate/' + this.game.gameId,
@@ -541,6 +539,7 @@ class _GamePageState extends State<GamePage> {
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
+      print(res.body);
       if (res.statusCode == HttpStatus.ok)
         checkGroup();
       else
@@ -735,10 +734,5 @@ class _GamePageState extends State<GamePage> {
             _buildError(context)
         });
     this.showProgress = true;
-  }
-
-  ScaffoldFeatureController _buildError(context) {
-    return Scaffold.of(context)
-        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
   }
 }
