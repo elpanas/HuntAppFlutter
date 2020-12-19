@@ -262,18 +262,23 @@ class _AddLocationState extends State<AddLocation> {
     );
   }
 
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
+  }
+
   void checkLocations() {
     setState(() {
       if (this.options.locnr == 0)
         this.showRadioStart = true;
       else if (((this.event.maxLoc - this.options.locnr) == 1) &&
-          (this.cluster == this.options.tot_clusters))
+          (this.cluster == this.options.totClusters))
         this.showRadioFinal = true;
       else if (this.options.locnr < this.event.minLoc)
         this.showRadioMiddle = true;
       else {
         this.showRadioMiddle = true;
-        if (this.cluster == this.options.tot_clusters)
+        if (this.cluster == this.options.totClusters)
           this.showRadioFinal = true;
       }
     });
@@ -318,11 +323,6 @@ class _AddLocationState extends State<AddLocation> {
         }
       }),
     );
-  }
-
-  ScaffoldFeatureController _buildError(context) {
-    return Scaffold.of(context)
-        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
   }
 
   void checkUser() async {

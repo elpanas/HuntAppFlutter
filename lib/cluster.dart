@@ -44,7 +44,7 @@ class _ClusterPageState extends State<ClusterPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cluster nr.:' + cluster.toString(),
+      title: 'Cluster ' + cluster.toString(),
       theme:
           ThemeData(primarySwatch: Colors.orange, brightness: Brightness.light),
       darkTheme: ThemeData(
@@ -58,7 +58,9 @@ class _ClusterPageState extends State<ClusterPage> {
       ),
       themeMode: ThemeMode.dark,
       home: Scaffold(
-        appBar: AppBar(title: Text('Cluster ' + cluster.toString())),
+        appBar: AppBar(
+            title:
+                Text('Cluster ' + cluster.toString() + ' of ' + game.gameName)),
         floatingActionButton: (this.showAddButton)
             ? FloatingActionButton(
                 child: Icon(Icons.add),
@@ -81,36 +83,39 @@ class _ClusterPageState extends State<ClusterPage> {
                     children: [Text(message)]),
               ),
             Expanded(
-              child: ListView.builder(
-                  itemCount: locations.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Card(
-                      elevation: 2,
-                      child: ListTile(
-                        tileColor: (locations[index].locStart ||
-                                locations[index].locFinal)
-                            ? Colors.blue[100]
-                            : null,
-                        onTap: () {
-                          /*MaterialPageRoute routeEvent = MaterialPageRoute(
-                              builder: (_) =>
-                                  SingleEventPage(locations[index]));
-                          Navigator.push(context, routeEvent);*/
-                        },
-                        leading: Icon(Icons.location_on),
-                        title: Text(
-                          (locations[index].locFinal)
-                              ? 'Final location'
-                              : 'Location ' + (index + 1).toString(),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ListView.builder(
+                    itemCount: locations.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Card(
+                        elevation: 2,
+                        child: ListTile(
+                          tileColor: (locations[index].locStart ||
+                                  locations[index].locFinal)
+                              ? Colors.indigo
+                              : null,
+                          onTap: () {
+                            /*MaterialPageRoute routeEvent = MaterialPageRoute(
+                                builder: (_) =>
+                                    SingleEventPage(locations[index]));
+                            Navigator.push(context, routeEvent);*/
+                          },
+                          leading: Icon(Icons.location_on),
+                          title: Text(
+                            (locations[index].locFinal)
+                                ? 'Final location'
+                                : 'Location ' + (index + 1).toString(),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }),
+                      );
+                    }),
+              ),
             ),
             if (locStartFinalWarn) _buildWarning(),
           ],

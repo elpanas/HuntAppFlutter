@@ -34,9 +34,6 @@ dependencies:
   google_static_maps_controller: ^0.4.1
   flutter_qr_bar_scanner: ^1.0.2
   timer_count_down: ^1.0.4+1
-  transparent_image: ^1.0.0
-  cached_network_image: ^2.4.1
-  flutter_cache_manager: ^2.0.0
   path_provider: ^1.6.24
   open_file: ^3.0.3
   image_picker: ^0.6.7+15

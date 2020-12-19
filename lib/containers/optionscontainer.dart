@@ -1,6 +1,6 @@
 class Opts {
-  int locnr, tot_clusters;
+  int locnr, totClusters;
   bool isstart, isfinal;
 
-  Opts(this.locnr, this.isstart, this.isfinal, this.tot_clusters);
+  Opts(this.locnr, this.isstart, this.isfinal, this.totClusters);
 }

@@ -176,7 +176,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             }
                           });
                         } else
-                          checkUser(nameController.text, pswController.text)
+                          makeLogin(nameController.text, pswController.text)
                               .then((res) {
                             if (res.statusCode == HttpStatus.ok) {
                               setVars(res).then((_) => {
@@ -219,10 +219,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   Future setVars(res) async {
     await storage.deleteAll();
-    if (!this.login)
-      await storage.write(key: 'is_admin', value: _checked.toString());
-    else
-      await storage.write(key: 'is_admin', value: res.body.toString());
+    var admvalue = (!this.login) ? _checked.toString() : res.body.toString();
+
+    await storage.write(key: 'is_admin', value: admvalue);
 
     await storage.write(key: 'username', value: nameController.text);
     return await storage.write(
@@ -231,10 +230,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             utf8.encode(nameController.text + ':' + pswController.text)));
   }
 
-  Future checkUser(String name, String psw) async {
+  Future makeLogin(String name, String psw) async {
     var pin = base64.encode(utf8.encode(name + ':' + psw));
-    print(pin);
-    return http.get(
+    return http.put(
       globals.url + 'user/login',
       headers: <String, String>{
         HttpHeaders.authorizationHeader: 'Basic ' + pin

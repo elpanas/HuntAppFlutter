@@ -73,7 +73,7 @@ class _ClusterListState extends State<ClusterList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(game.gameName),
+        title: Text('Clusters of ' + game.gameName),
         actions: <Widget>[
           (showQrButton) ? _buildQrButton(context) : (Container()),
         ],
@@ -91,6 +91,7 @@ class _ClusterListState extends State<ClusterList> {
           : null,
       body: Column(
         children: [
+          Container(height: 25),
           Expanded(
             child: ListView.builder(
                 itemCount: clusters.length,
