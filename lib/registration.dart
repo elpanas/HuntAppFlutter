@@ -128,13 +128,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 TextFormField(
                   controller: pswController,
                   keyboardType: TextInputType.visiblePassword,
+                  obscureText: true,
                   decoration: InputDecoration(
                     icon: Icon(Icons.lock),
                     hintText: 'Type your password',
                     hintStyle: TextStyle(fontSize: 18),
                   ),
                   validator: (value) {
-                    if (value.isEmpty) {
+                    if (value.trim().isEmpty) {
                       return 'Please enter some text';
                     }
                     return null;
