@@ -6,10 +6,12 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_static_maps_controller/google_static_maps_controller.dart';
+import 'package:huntapp/containers/selfiecontainer.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:timer_count_down/timer_count_down.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:huntapp/clusterlist.dart';
 import 'containers/eventcontainer.dart';
@@ -35,6 +37,7 @@ class _GamePageState extends State<GamePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController solController = TextEditingController();
   final picker = ImagePicker();
+  List<Selfie> selfies = List<Selfie>();
   String _image;
   String pin = '';
   String idsg = '';
@@ -54,16 +57,6 @@ class _GamePageState extends State<GamePage> {
   bool showRiddleButton;
   bool showCountDown;
   bool showCongrats;
-
-  _qrCallback(String code) {
-    setState(() {
-      if (code == this.action.locId)
-        this.showPhotoButton = true;
-      else
-        this.showLocationInfo = true;
-      this.showQrScanner = false;
-    });
-  }
 
   @override
   void initState() {
@@ -151,6 +144,7 @@ class _GamePageState extends State<GamePage> {
                 if (groupok && showPhotoButton) _buildPhotoButton(),
                 if (groupok && showRiddle) _buildRiddle(),
                 if (showCountDown) _buildCounDown(),
+                if (showCongrats) _buildCarousel(),
                 if (showCongrats) _buildCongrats(context)
               ],
             ),
@@ -450,6 +444,7 @@ class _GamePageState extends State<GamePage> {
   Widget _buildCongrats(BuildContext context) {
     return Center(
       child: Column(children: [
+        Container(height: 10),
         Text(
           'Congratulations!',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -463,6 +458,7 @@ class _GamePageState extends State<GamePage> {
         FlatButton.icon(
             onPressed: () {
               loadCertificate(context);
+              openCertificate();
             },
             minWidth: MediaQuery.of(context).size.width / 1.3,
             color: Colors.orange,
@@ -482,6 +478,33 @@ class _GamePageState extends State<GamePage> {
         ),
       ]),
     );
+  }
+
+  Widget _buildCarousel() {
+    return CarouselSlider(
+        items: selfies
+            .map((item) => Container(
+                    child: Center(
+                        child: Image.network(
+                  globals.selfieurl + item.image,
+                  fit: BoxFit.cover,
+                  height: MediaQuery.of(context).size.height / 2,
+                ))))
+            .toList(),
+        options: CarouselOptions(
+          height: 300,
+          aspectRatio: 16 / 9,
+          viewportFraction: 0.8,
+          initialPage: 0,
+          enableInfiniteScroll: true,
+          reverse: false,
+          autoPlay: true,
+          autoPlayInterval: Duration(seconds: 2),
+          autoPlayAnimationDuration: Duration(milliseconds: 800),
+          autoPlayCurve: Curves.fastOutSlowIn,
+          enlargeCenterPage: true,
+          scrollDirection: Axis.horizontal,
+        ));
   }
 
   Widget _buildWarning() {
@@ -569,6 +592,16 @@ class _GamePageState extends State<GamePage> {
           this.groupok = false;
           this.showProgress = false;
         });
+    });
+  }
+
+  _qrCallback(String code) {
+    setState(() {
+      if (code == this.action.locId)
+        this.showPhotoButton = true;
+      else
+        this.showLocationInfo = true;
+      this.showQrScanner = false;
     });
   }
 
@@ -704,8 +737,29 @@ class _GamePageState extends State<GamePage> {
         )
         .then((res) => {
               if (res.statusCode == HttpStatus.ok)
-                {loadCertificate(context), this.showCongrats = true}
+                {
+                  loadPhotos(),
+                  //loadCertificate(context),
+                  this.showCongrats = true,
+                  this.showProgress = false
+                }
             });
+  }
+
+  void loadPhotos() {
+    http.get(globals.url + 'action/selfies/' + this.idsg,
+        headers: <String, String>{
+          HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        }).then((res) {
+      if (res.statusCode == HttpStatus.ok) {
+        final resJson = jsonDecode(res.body);
+        selfies = resJson.map<Selfie>((json) => Selfie.fromJson(json)).toList();
+        setState(() {
+          selfies = selfies;
+        });
+      } else
+        print('NO');
+    });
   }
 
   void loadCertificate(BuildContext context) {
@@ -719,20 +773,20 @@ class _GamePageState extends State<GamePage> {
             {
               if (this.dir != null)
                 File(this.dir.path + '/' + this.idsg + '-certificate.pdf')
-                    .writeAsBytes(res.bodyBytes)
-                    .then((file) => {
-                          this.showProgress = false,
-                          OpenFile.open(
-                              this.dir.path +
-                                  '/' +
-                                  this.idsg +
-                                  '-certificate.pdf',
-                              type: 'application/pdf')
-                        }),
+                    .writeAsBytes(res.bodyBytes),
             }
           else
-            _buildError(context)
+            _buildError(context),
+          this.showProgress = false
         });
     this.showProgress = true;
+  }
+
+  void openCertificate() {
+    if (this.dir != null)
+      OpenFile.open(
+        this.dir.path + '/' + this.idsg + '-certificate.pdf',
+        type: 'application/pdf',
+      );
   }
 }
