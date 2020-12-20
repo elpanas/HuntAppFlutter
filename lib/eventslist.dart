@@ -66,34 +66,21 @@ class _EventsScreenState extends State<EventsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Events List'),
-        actions: <Widget>[
-          (isadmin)
-              ? Padding(
-                  padding: EdgeInsets.only(right: 40.0),
-                  child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => AddRiddle()));
-                      },
-                      child: Icon(
-                        Icons.now_widgets,
-                        size: 26.0,
-                      )))
-              : Container()
-        ],
-      ),
+      appBar: AppBar(title: Text('Events')),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.orange),
+              decoration: BoxDecoration(
+                  color: Colors.orange,
+                  image: DecorationImage(
+                      fit: BoxFit.fitWidth,
+                      image: AssetImage('assets/images/backdraw.png'))),
               child: Stack(children: <Widget>[
                 Positioned(
                     bottom: 12.0,
-                    child: Text('Welcome ' + this.username,
+                    child: Text(this.username,
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 24,
@@ -106,6 +93,13 @@ class _EventsScreenState extends State<EventsScreen> {
               onTap: () => Navigator.push(
                   context, MaterialPageRoute(builder: (_) => MatchesList())),
             ),
+            (isadmin)
+                ? ListTile(
+                    leading: Icon(Icons.now_widgets),
+                    title: Text('Add New Riddle'),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => AddRiddle())))
+                : Container(),
           ],
         ),
       ),
