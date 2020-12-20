@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addevent.dart';
 import 'package:huntapp/addriddle.dart';
+import 'package:huntapp/matcheslist.dart';
 import 'containers/eventcontainer.dart';
 import 'gameslist.dart';
 import 'globals.dart' as globals;
@@ -47,7 +48,7 @@ class _EventsScreenState extends State<EventsScreen> {
   bool showProgress;
   String pin = '';
   String message = '';
-  String username;
+  String username = '';
 
   @override
   void initState() {
@@ -82,6 +83,31 @@ class _EventsScreenState extends State<EventsScreen> {
                       )))
               : Container()
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(color: Colors.orange),
+              child: Stack(children: <Widget>[
+                Positioned(
+                    bottom: 12.0,
+                    child: Text('Welcome ' + this.username,
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 24,
+                        ))),
+              ]),
+            ),
+            ListTile(
+              leading: Icon(Icons.games_rounded),
+              title: Text('Games & Certificates'),
+              onTap: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => MatchesList())),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: (isadmin)
           ? FloatingActionButton(
@@ -153,6 +179,7 @@ class _EventsScreenState extends State<EventsScreen> {
 
   void checkUser() async {
     this.isadmin = (await storage.read(key: 'is_admin') == 'true');
+    this.username = await storage.read(key: 'username');
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, loadEvents()});
