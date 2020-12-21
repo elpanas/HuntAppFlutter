@@ -1,5 +1,5 @@
 name: huntapp
-description: A new Flutter project.
+description: Code Hunting Games is a game based on the classic “treasure hunt” scheme, in which teams of players compete against each other reaching locations and solving coding puzzles as fast as they can.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.

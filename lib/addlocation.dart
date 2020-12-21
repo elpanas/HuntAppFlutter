@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_map_location_picker/google_map_location_picker.dart';
 import 'package:huntapp/cluster.dart';
+import 'package:huntapp/themes.dart';
 import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
 import 'containers/optionscontainer.dart';
@@ -48,6 +49,7 @@ class _AddLocationState extends State<AddLocation> {
   bool showRadioFinal;
   bool showLocButton;
   bool sendok;
+  bool _nmode = true;
 
   _AddLocationState(this.event, this.game, this.cluster, this.options);
 
@@ -74,18 +76,9 @@ class _AddLocationState extends State<AddLocation> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme:
-          ThemeData(primarySwatch: Colors.orange, brightness: Brightness.light),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.orange,
-        primaryColor: Colors.orange,
-        brightness: Brightness.dark,
-        backgroundColor: const Color(0xFF212121),
-        floatingActionButtonTheme:
-            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
-        dividerColor: Colors.black12,
-      ),
-      themeMode: ThemeMode.dark,
+      theme: lightThemeData,
+      darkTheme: darkThemeData,
+      themeMode: (this._nmode) ? ThemeMode.dark : ThemeMode.light,
       localizationsDelegates: const [
         S.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -326,6 +319,9 @@ class _AddLocationState extends State<AddLocation> {
   }
 
   void checkUser() async {
+    await storage.read(key: 'theme').then((value) => setState(() {
+          this._nmode = (value == 'dark');
+        }));
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, checkLocations()});

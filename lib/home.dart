@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:huntapp/themes.dart';
 import 'globals.dart' as globals;
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -11,17 +12,8 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Code Hunting Game',
-      theme: ThemeData(
-          primarySwatch: Colors.orange,
-          brightness: Brightness.light,
-          backgroundColor: Color(0x0FF1A237E)),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.orange,
-        primaryColor: Colors.indigo,
-        brightness: Brightness.dark,
-        backgroundColor: const Color(0xFF212121),
-        dividerColor: Colors.black12,
-      ),
+      theme: lightThemeData,
+      darkTheme: darkThemeData,
       themeMode: ThemeMode.dark,
       home: Scaffold(
         body: HomePageScreen(),

@@ -6,44 +6,21 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addevent.dart';
 import 'package:huntapp/addriddle.dart';
 import 'package:huntapp/matcheslist.dart';
+import 'package:huntapp/themes.dart';
 import 'containers/eventcontainer.dart';
 import 'gameslist.dart';
 import 'globals.dart' as globals;
 
-class EventsPage extends StatelessWidget {
+class EventsPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Events List',
-      theme: ThemeData(
-          primarySwatch: Colors.orange,
-          brightness: Brightness.light,
-          backgroundColor: Color(0x0FF1A237E)),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.orange,
-        primaryColor: Colors.orange,
-        brightness: Brightness.dark,
-        backgroundColor: const Color(0xFF212121),
-        accentColor: Colors.orangeAccent,
-        floatingActionButtonTheme:
-            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
-        dividerColor: Colors.black12,
-      ),
-      themeMode: ThemeMode.dark,
-      home: EventsScreen(),
-    );
-  }
+  _EventsPageState createState() => _EventsPageState();
 }
 
-class EventsScreen extends StatefulWidget {
-  @override
-  _EventsScreenState createState() => _EventsScreenState();
-}
-
-class _EventsScreenState extends State<EventsScreen> {
+class _EventsPageState extends State<EventsPage> {
   final storage = new FlutterSecureStorage();
   final TextEditingController searchController = TextEditingController();
   List<Event> events = List<Event>();
+  bool _nmode = true;
   bool isadmin = false;
   bool showProgress;
   String pin = '';
@@ -65,97 +42,120 @@ class _EventsScreenState extends State<EventsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Events')),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                  color: Colors.orange,
-                  image: DecorationImage(
-                      fit: BoxFit.fitWidth,
-                      image: AssetImage('assets/images/backdraw.png'))),
-              child: Stack(children: <Widget>[
-                Positioned(
-                    bottom: 12.0,
-                    child: Text(this.username,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 24,
-                        ))),
-              ]),
-            ),
-            ListTile(
-              leading: Icon(Icons.games_rounded),
-              title: Text('Games & Certificates'),
-              onTap: () => Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => MatchesList())),
-            ),
-            (isadmin)
-                ? ListTile(
-                    leading: Icon(Icons.now_widgets),
-                    title: Text('Add New Riddle'),
-                    onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => AddRiddle())))
-                : Container(),
-          ],
+    return MaterialApp(
+      title: 'Events List',
+      theme: lightThemeData,
+      darkTheme: darkThemeData,
+      themeMode: (_nmode) ? ThemeMode.dark : ThemeMode.light,
+      home: Scaffold(
+        appBar: AppBar(title: Text('Events')),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(
+                    color: Colors.orange,
+                    image: DecorationImage(
+                        fit: BoxFit.fitWidth,
+                        image: AssetImage('assets/images/backdraw.png'))),
+                child: Stack(children: <Widget>[
+                  Positioned(
+                      bottom: 12.0,
+                      child: Text(this.username,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 24,
+                          ))),
+                ]),
+              ),
+              ListTile(
+                leading: Icon(Icons.games_rounded),
+                title: Text('Games & Certificates'),
+                onTap: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => MatchesList())),
+              ),
+              (isadmin)
+                  ? ListTile(
+                      leading: Icon(Icons.now_widgets),
+                      title: Text('Add New Riddle'),
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => AddRiddle())))
+                  : Container(),
+              Divider(
+                indent: 18,
+                endIndent: 18,
+              ),
+              SwitchListTile(
+                title: const Text('Night Mode'),
+                secondary: const Icon(Icons.nights_stay),
+                value: _nmode,
+                onChanged: (bool value) {
+                  setState(() {
+                    _nmode = value;
+                  });
+
+                  changeTheme(_nmode);
+                },
+                activeColor: Colors.orange,
+              ),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: (isadmin)
-          ? FloatingActionButton(
-              child: Icon(Icons.add),
-              onPressed: () {
-                Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => AddEventPage()));
-              })
-          : null,
-      body: Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: (_) => searchEvents(searchController.text),
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                hintStyle: TextStyle(fontSize: 14),
-                prefixIcon: Icon(Icons.search),
+        floatingActionButton: (isadmin)
+            ? FloatingActionButton(
+                child: Icon(Icons.add),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => AddEventPage()));
+                })
+            : null,
+        body: Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                onChanged: (_) => searchEvents(searchController.text),
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search...',
+                  hintStyle: TextStyle(fontSize: 14),
+                  prefixIcon: Icon(Icons.search),
+                ),
               ),
             ),
-          ),
-          Text(message),
-          if (showProgress) _buildLoader(),
-          Expanded(
-            child: ListView.builder(
-                itemCount: events.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Card(
-                    elevation: 2,
-                    child: ListTile(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) =>
-                                    SingleEventPage(events[index])));
-                      },
-                      leading: Icon(Icons.event),
-                      title: Text(
-                        events[index].eventName,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
+            Text(message),
+            if (showProgress) _buildLoader(),
+            Expanded(
+              child: ListView.builder(
+                  itemCount: events.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Card(
+                      elevation: 2,
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      SingleEventPage(events[index])));
+                        },
+                        leading: Icon(Icons.event),
+                        title: Text(
+                          events[index].eventName,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
+                        subtitle: Text('Organizer: ' + events[index].userName),
                       ),
-                      subtitle: Text('Organizer: ' + events[index].userName),
-                    ),
-                  );
-                }),
-          )
-        ],
+                    );
+                  }),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -171,7 +171,15 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 
+  void changeTheme(value) async {
+    var darkmode = (value) ? 'dark' : 'light';
+    await storage.write(key: 'theme', value: darkmode);
+  }
+
   void checkUser() async {
+    await storage.read(key: 'theme').then((value) => setState(() {
+          this._nmode = (value == 'dark');
+        }));
     this.isadmin = (await storage.read(key: 'is_admin') == 'true');
     this.username = await storage.read(key: 'username');
     await storage

@@ -4,46 +4,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/eventslist.dart';
+import 'package:huntapp/themes.dart';
 import 'globals.dart' as globals;
 
-class AddEventPage extends StatelessWidget {
+class AddEventPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'New Event',
-      theme:
-          ThemeData(primarySwatch: Colors.orange, brightness: Brightness.light),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.orange,
-        primaryColor: Colors.orange,
-        brightness: Brightness.dark,
-        backgroundColor: const Color(0xFF212121),
-        floatingActionButtonTheme:
-            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
-        dividerColor: Colors.black12,
-      ),
-      themeMode: ThemeMode.dark,
-      home: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-        appBar: AppBar(title: Text('New Event')),
-        body: AddEventScreen(),
-      ),
-    );
-  }
+  _AddEventPageState createState() => _AddEventPageState();
 }
 
-class AddEventScreen extends StatefulWidget {
-  @override
-  _AddEventScreenState createState() => _AddEventScreenState();
-}
-
-class _AddEventScreenState extends State<AddEventScreen> {
+class _AddEventPageState extends State<AddEventPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController minlocController = TextEditingController();
@@ -52,6 +21,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   // Create storage
   final storage = new FlutterSecureStorage();
   bool isadmin;
+  bool _nmode = true;
   String pin = '';
   String textError = '';
 
@@ -73,107 +43,120 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              TextFormField(
-                controller: nameController,
-                keyboardType: TextInputType.name,
-                decoration: InputDecoration(
-                  hintText: 'Type the name of the event',
-                  hintStyle: TextStyle(fontSize: 18),
+    return MaterialApp(
+      title: 'Events List',
+      theme: lightThemeData,
+      darkTheme: darkThemeData,
+      themeMode: (_nmode) ? ThemeMode.dark : ThemeMode.light,
+      home: Scaffold(
+          appBar: AppBar(title: Text('New Event')),
+          body: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: nameController,
+                      keyboardType: TextInputType.name,
+                      decoration: InputDecoration(
+                        hintText: 'Type the name of the event',
+                        hintStyle: TextStyle(fontSize: 18),
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
+                    ),
+                    Container(height: 10),
+                    TextFormField(
+                      controller: minlocController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Type the minimum nr. of locations',
+                        hintStyle: TextStyle(fontSize: 18),
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
+                    ),
+                    Container(height: 10),
+                    TextFormField(
+                      controller: maxlocController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Type the maximum nr. of locations',
+                        hintStyle: TextStyle(fontSize: 18),
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
+                    ),
+                    Container(height: 10),
+                    TextFormField(
+                      controller: avglocController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Type the average distance',
+                        hintStyle: TextStyle(fontSize: 18),
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
+                    ),
+                    Container(height: 25),
+                    Container(child: Text(textError)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: FlatButton(
+                        minWidth: MediaQuery.of(context).size.width / 1.2,
+                        color: Colors.orange,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            sendData().then((res) {
+                              if (res.statusCode == HttpStatus.ok)
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => EventsPage()));
+                              else
+                                _buildError(context);
+                            });
+                          }
+                        },
+                        child: Text(
+                          'Save Event',
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
               ),
-              Container(height: 10),
-              TextFormField(
-                controller: minlocController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Type the minimum nr. of locations',
-                  hintStyle: TextStyle(fontSize: 18),
-                ),
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
-              ),
-              Container(height: 10),
-              TextFormField(
-                controller: maxlocController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Type the maximum nr. of locations',
-                  hintStyle: TextStyle(fontSize: 18),
-                ),
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
-              ),
-              Container(height: 10),
-              TextFormField(
-                controller: avglocController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Type the average distance',
-                  hintStyle: TextStyle(fontSize: 18),
-                ),
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
-              ),
-              Container(height: 25),
-              Container(child: Text(textError)),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: FlatButton(
-                  minWidth: MediaQuery.of(context).size.width / 1.2,
-                  color: Colors.orange,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      sendData().then((res) {
-                        if (res.statusCode == HttpStatus.ok)
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => EventsPage()));
-                        else
-                          _buildError(context);
-                      });
-                    }
-                  },
-                  child: Text(
-                    'Save Event',
-                    style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          )),
     );
   }
 
   void checkUser() async {
+    await storage.read(key: 'theme').then((value) => setState(() {
+          this._nmode = (value == 'dark');
+        }));
     this.isadmin = (await storage.read(key: 'is_admin') == 'true');
     await storage.read(key: 'pin').then((value) => {this.pin = value});
   }

@@ -48,41 +48,25 @@ class _MatchPageState extends State<MatchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: match.gameName,
-      theme:
-          ThemeData(primarySwatch: Colors.orange, brightness: Brightness.light),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.orange,
-        primaryColor: Colors.orange,
-        brightness: Brightness.dark,
-        backgroundColor: const Color(0xFF212121),
-        floatingActionButtonTheme:
-            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
-        dividerColor: Colors.black12,
-      ),
-      themeMode: ThemeMode.dark,
-      home: Scaffold(
-          appBar: AppBar(title: Text(match.gameName)),
-          body: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(),
-                    if (showProgress)
-                      Center(child: CircularProgressIndicator()),
-                    if (showCongrats) _buildCarousel(),
-                    if (showCongrats) _buildCongrats(context)
-                  ],
-                ),
+    return Scaffold(
+        appBar: AppBar(title: Text(match.gameName)),
+        body: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Container(),
+                  if (showProgress) Center(child: CircularProgressIndicator()),
+                  if (showCongrats) _buildCarousel(),
+                  if (showCongrats) _buildCongrats(context)
+                ],
               ),
             ),
-          )),
-    );
+          ),
+        ));
   }
 
   Widget _buildCongrats(BuildContext context) {

@@ -3,56 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:huntapp/themes.dart';
 import 'containers/eventcontainer.dart';
 import 'gameslist.dart';
 import 'globals.dart' as globals;
 
-class AddGamePage extends StatelessWidget {
+class AddGamePage extends StatefulWidget {
   final Event event;
   AddGamePage(this.event);
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'New Game',
-      theme:
-          ThemeData(primarySwatch: Colors.orange, brightness: Brightness.light),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.orange,
-        primaryColor: Colors.orange,
-        brightness: Brightness.dark,
-        backgroundColor: const Color(0xFF212121),
-        floatingActionButtonTheme:
-            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
-        dividerColor: Colors.black12,
-      ),
-      themeMode: ThemeMode.dark,
-      home: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-        appBar: AppBar(title: Text('New Game')),
-        body: AddGameScreen(event),
-      ),
-    );
-  }
+  _AddGamePageState createState() => _AddGamePageState(event);
 }
 
-class AddGameScreen extends StatefulWidget {
+class _AddGamePageState extends State<AddGamePage> {
   final Event event;
-  AddGameScreen(this.event);
-
-  @override
-  _AddGameScreenState createState() => _AddGameScreenState(event);
-}
-
-class _AddGameScreenState extends State<AddGameScreen> {
-  final Event event;
-  _AddGameScreenState(this.event);
+  _AddGamePageState(this.event);
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
@@ -60,7 +26,14 @@ class _AddGameScreenState extends State<AddGameScreen> {
   final List<String> gameCategories = ['Basic', 'Intermediate', 'Advanced'];
   String gameCategory = 'Basic';
   String textError = '';
+  String pin = '';
   bool _checked = false;
+
+  @override
+  void initState() {
+    checkUser();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -71,75 +44,78 @@ class _AddGameScreenState extends State<AddGameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              _buidlFieldName(),
-              Container(height: 25),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Riddles Level'),
-                value: gameCategory,
-                items: gameCategories.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String newValue) {
-                  setState(() {
-                    gameCategory = newValue;
-                  });
-                },
-              ),
-              Container(height: 25),
-              CheckboxListTile(
-                title: Text('Check if you want an open game'),
-                value: _checked,
-                onChanged: (bool value) {
-                  setState(() {
-                    _checked = value;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
-              Container(height: 25),
-              Container(child: Text(textError)),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: FlatButton(
-                  minWidth: MediaQuery.of(context).size.width / 1.2,
-                  color: Colors.orange,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+    return Scaffold(
+        appBar: AppBar(title: Text('New Game')),
+        body: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                children: [
+                  _buidlFieldName(),
+                  Container(height: 25),
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(labelText: 'Riddles Level'),
+                    value: gameCategory,
+                    items: gameCategories.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String newValue) {
+                      setState(() {
+                        gameCategory = newValue;
+                      });
+                    },
                   ),
-                  onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      sendData().then((res) => {
-                            if (res.statusCode == HttpStatus.ok)
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => SingleEventPage(event)))
-                            else
-                              _buildError(context)
-                          });
-                    }
-                  },
-                  child: Text(
-                    'Save Game',
-                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  Container(height: 25),
+                  CheckboxListTile(
+                    title: Text('Check if you want an open game'),
+                    value: _checked,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _checked = value;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
                   ),
-                ),
+                  Container(height: 25),
+                  Container(child: Text(textError)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: FlatButton(
+                      minWidth: MediaQuery.of(context).size.width / 1.2,
+                      color: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      onPressed: () {
+                        if (_formKey.currentState.validate()) {
+                          sendData().then((res) => {
+                                if (res.statusCode == HttpStatus.ok)
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) =>
+                                              SingleEventPage(event)))
+                                else
+                                  _buildError(context)
+                              });
+                        }
+                      },
+                      child: Text(
+                        'Save Game',
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buidlFieldName() {
@@ -160,13 +136,11 @@ class _AddGameScreenState extends State<AddGameScreen> {
   }
 
   Future sendData() async {
-    String pin = await storage.read(key: 'pin');
-
     return http.post(
       globals.url + 'game',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + pin
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
       body: jsonEncode(<String, dynamic>{
         'event_id': event.eventId,
@@ -176,6 +150,10 @@ class _AddGameScreenState extends State<AddGameScreen> {
         'is_open': _checked
       }),
     );
+  }
+
+  void checkUser() async {
+    await storage.read(key: 'pin').then((value) => {this.pin = value});
   }
 
   ScaffoldFeatureController _buildError(context) {
