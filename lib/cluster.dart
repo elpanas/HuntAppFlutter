@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addlocation.dart';
 import 'package:huntapp/containers/eventcontainer.dart';
-import 'package:huntapp/themes.dart';
 import 'containers/gamecontainer.dart';
 import 'containers/locationcontainer.dart';
 import 'containers/optionscontainer.dart';
@@ -32,7 +31,6 @@ class _ClusterPageState extends State<ClusterPage> {
   final storage = new FlutterSecureStorage();
   List<Location> locations = List<Location>();
   String pin = '';
-  bool _nmode = true;
   bool showAddButton = false;
   bool locStartFinalWarn = false;
   String message = '';
@@ -152,9 +150,6 @@ class _ClusterPageState extends State<ClusterPage> {
   }
 
   void checkUser() async {
-    await storage.read(key: 'theme').then((value) => setState(() {
-          this._nmode = (value == 'dark');
-        }));
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, loadLocations(), checkAddButton()});

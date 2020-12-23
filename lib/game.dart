@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_qr_bar_scanner/qr_bar_scanner_camera.dart';
 import 'package:huntapp/addgroup.dart';
@@ -669,9 +670,10 @@ class _GamePageState extends State<GamePage> {
     });
   }
 
-  void loadRiddle() {
+  void loadRiddle() async {
+    final myLocale = await Devicelocale.currentLocale;
     http.get(
-      globals.url + 'action/riddle/' + this.action.actId,
+      globals.url + 'action/riddle/' + this.action.actId + '/' + myLocale,
       headers: <String, String>{
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },

@@ -1,11 +1,12 @@
 import 'dart:io';
+import 'package:huntapp/eventslist.dart';
+import 'package:huntapp/registration.dart';
 import 'package:huntapp/themes.dart';
 import 'globals.dart' as globals;
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'eventslist.dart';
-import 'registration.dart';
+import 'package:devicelocale/devicelocale.dart';
 
 class HomePage extends StatelessWidget {
   @override

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:huntapp/themes.dart';
 import 'containers/eventcontainer.dart';
 import 'gameslist.dart';
 import 'globals.dart' as globals;

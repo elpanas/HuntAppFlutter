@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:huntapp/containers/matchcontainer.dart';
 import 'package:huntapp/match.dart';
 import 'package:huntapp/themes.dart';
-import 'containers/eventcontainer.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;

@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/game.dart';
-import 'package:huntapp/themes.dart';
 import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
 import 'globals.dart' as globals;

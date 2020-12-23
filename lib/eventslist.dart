@@ -5,10 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addevent.dart';
 import 'package:huntapp/addriddle.dart';
+import 'package:huntapp/containers/eventcontainer.dart';
+import 'package:huntapp/gameslist.dart';
 import 'package:huntapp/matcheslist.dart';
 import 'package:huntapp/themes.dart';
-import 'containers/eventcontainer.dart';
-import 'gameslist.dart';
+
 import 'globals.dart' as globals;
 
 class EventsPage extends StatefulWidget {
