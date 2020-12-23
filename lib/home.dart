@@ -6,7 +6,6 @@ import 'globals.dart' as globals;
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:devicelocale/devicelocale.dart';
 
 class HomePage extends StatelessWidget {
   @override
