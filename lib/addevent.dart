@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -162,6 +163,7 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   Future sendData() async {
+    Position current = await Geolocator.getLastKnownPosition();
     return http.post(
       globals.url + 'event',
       headers: <String, String>{
@@ -172,7 +174,11 @@ class _AddEventPageState extends State<AddEventPage> {
         'name': nameController.text,
         'minloc': int.parse(minlocController.text),
         'maxloc': int.parse(maxlocController.text),
-        'avgloc': int.parse(avglocController.text)
+        'avgloc': int.parse(avglocController.text),
+        'location': {
+          'type': "Point",
+          'coordinates': [current.latitude, current.longitude]
+        }
       }),
     );
   }

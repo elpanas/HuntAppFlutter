@@ -7,6 +7,7 @@ import 'package:huntapp/game.dart';
 import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
 import 'globals.dart' as globals;
+import 'package:country_picker/country_picker.dart';
 
 class AddGroup extends StatefulWidget {
   final Event event;
@@ -27,6 +28,8 @@ class _AddGroupState extends State<AddGroup> {
   final TextEditingController photoController = TextEditingController();
 
   final storage = new FlutterSecureStorage();
+  String _countryInputName = 'No country inserted';
+  String _countryInputCode;
   String pin = '';
   bool sendok = false;
   String textError = '';
@@ -81,7 +84,46 @@ class _AddGroupState extends State<AddGroup> {
                     return 'Please enter a number > 0';
                   }
                   return null;
-                },
+                }, // if you need custome picker use this
+              ),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextFormField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        hintText: _countryInputName,
+                        hintStyle: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Ink(
+                          decoration: const ShapeDecoration(
+                            color: Colors.orange,
+                            shape: CircleBorder(),
+                          ),
+                          child: IconButton(
+                              icon: Icon(
+                                Icons.flag,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                showCountryPicker(
+                                  context: context,
+                                  showPhoneCode:
+                                      false, // optional. Shows phone code before the country name.
+                                  onSelect: (Country country) {
+                                    setState(() {
+                                      _countryInputName =
+                                          country.displayNameNoCountryCode;
+                                      _countryInputCode = country.countryCode;
+                                    });
+                                  },
+                                );
+                              })))
+                ],
               ),
               Text(textError),
               FlatButton(
@@ -116,6 +158,7 @@ class _AddGroupState extends State<AddGroup> {
   }
 
   Future sendData() {
+    print(nameController.text);
     return http.post(
       globals.url + 'sgame/',
       headers: <String, String>{
@@ -126,6 +169,7 @@ class _AddGroupState extends State<AddGroup> {
         'game_id': this.game.gameId,
         'group_name': nameController.text,
         'group_nr_players': int.tryParse(playersController.text),
+        'group_flag': _countryInputCode,
         'riddle_cat': this.game.gameRidCategory
       }),
     );

@@ -538,7 +538,10 @@ class _GamePageState extends State<GamePage> {
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, checkActivate()});
-    this.isadmin = (await storage.read(key: 'username') == event.userName);
+    //print(await storage.read(key: 'username'));
+    await storage
+        .read(key: 'username')
+        .then((username) => {this.isadmin = (username == event.userName)});
   }
 
   void checkActivate() {

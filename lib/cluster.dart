@@ -6,8 +6,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addlocation.dart';
 import 'package:huntapp/containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
-import 'containers/locationcontainer.dart';
-import 'containers/optionscontainer.dart';
+import 'package:huntapp/containers/locationcontainer.dart';
+import 'package:huntapp/containers/optionscontainer.dart';
 import 'globals.dart' as globals;
 
 class ClusterPage extends StatefulWidget {
@@ -34,6 +34,9 @@ class _ClusterPageState extends State<ClusterPage> {
   bool showAddButton = false;
   bool locStartFinalWarn = false;
   String message = '';
+  List<int> stepsNrList = [1];
+  int stepsValue = 1;
+  String clusterInfoId;
 
   @override
   void initState() {
@@ -68,7 +71,26 @@ class _ClusterPageState extends State<ClusterPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [Text(message)]),
             ),
-          Expanded(
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: DropdownButtonFormField<int>(
+              decoration: InputDecoration(labelText: 'Extracted Steps'),
+              value: stepsValue,
+              items: stepsNrList.map((int value) {
+                return DropdownMenuItem<int>(
+                  value: value,
+                  child: Text(value.toString()),
+                );
+              }).toList(),
+              onChanged: (int newValue) {
+                setState(() {
+                  stepsValue = newValue;
+                });
+                updateClusterInfo();
+              },
+            ),
+          ),
+          Flexible(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: ListView.builder(
@@ -140,6 +162,15 @@ class _ClusterPageState extends State<ClusterPage> {
           locations = locations
               .where((element) => element.locCluster == cluster)
               .toList();
+
+          final totLocs = (locations
+                      .where((element) => element.locStart || element.locFinal)
+                      .length >
+                  0)
+              ? locations.length - 1
+              : locations.length;
+
+          generateList(totLocs);
         });
       } else {
         setState(() {
@@ -149,9 +180,57 @@ class _ClusterPageState extends State<ClusterPage> {
     });
   }
 
+  void generateList(int totLocs) {
+    for (var i = 2; i <= totLocs; i++) this.stepsNrList.add(i);
+    setState(() {
+      stepsNrList = stepsNrList;
+    });
+  }
+
+  void loadClusterInfo() {
+    http.get(
+      globals.url +
+          'cluster/game/' +
+          this.game.gameId +
+          '/clt/' +
+          this.cluster.toString(),
+      headers: <String, String>{
+        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+      },
+    ).then((res) {
+      if (res.statusCode == HttpStatus.ok) {
+        final resJson = jsonDecode(res.body);
+
+        setState(() {
+          this.clusterInfoId = resJson['_id'];
+          this.stepsValue = resJson['nr_extracted_loc'];
+        });
+      }
+    });
+  }
+
+  void updateClusterInfo() {
+    http
+        .put(
+          globals.url + 'cluster',
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+          },
+          body: jsonEncode(<String, dynamic>{
+            'idc': this.clusterInfoId,
+            'stepsnr': this.stepsValue
+          }),
+        )
+        .then((res) => {if (res.statusCode == HttpStatus.ok) print('OK')});
+  }
+
   void checkUser() async {
-    await storage
-        .read(key: 'pin')
-        .then((value) => {this.pin = value, loadLocations(), checkAddButton()});
+    await storage.read(key: 'pin').then((value) => {
+          this.pin = value,
+          loadLocations(),
+          loadClusterInfo(),
+          checkAddButton()
+        });
   }
 }

@@ -46,7 +46,7 @@ class _SingleEventPageState extends State<SingleEventPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Games (' + event.eventName + ')'),
-        actions: <Widget>[
+        /*actions: <Widget>[
           Padding(
               padding: EdgeInsets.only(right: 20.0),
               child: GestureDetector(
@@ -55,7 +55,7 @@ class _SingleEventPageState extends State<SingleEventPage> {
                     Icons.edit,
                     size: 26.0,
                   ))),
-        ],
+        ],*/
       ),
       floatingActionButton: (isadmin)
           ? FloatingActionButton(

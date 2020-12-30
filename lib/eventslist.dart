@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addevent.dart';
@@ -190,10 +191,14 @@ class _EventsPageState extends State<EventsPage> {
 
   void loadEvents() async {
     try {
+      Position current = await Geolocator.getLastKnownPosition();
       http.get(
-        globals.url + 'event',
+        globals.url +
+            'event/lat/' +
+            current.latitude.toString() +
+            '/long/' +
+            current.longitude.toString(),
         headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
           HttpHeaders.authorizationHeader: 'Basic ' + this.pin
         },
       ).then((res) {
