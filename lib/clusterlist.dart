@@ -199,12 +199,12 @@ class _ClusterListState extends State<ClusterList> {
 
   void loadClusters() {
     http.get(
-      globals.url + 'loc/clusters/' + this.game.gameId,
+      globals.url + 'cluster/' + this.game.gameId,
       headers: <String, String>{
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
-      if (res.statusCode == 200) {
+      if (res.statusCode == HttpStatus.ok) {
         final resJson = jsonDecode(res.body);
         clusters =
             resJson.map<Cluster>((json) => Cluster.fromJson(json)).toList();
