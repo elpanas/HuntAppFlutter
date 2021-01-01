@@ -108,7 +108,7 @@ class _ClusterListState extends State<ClusterList> {
                       },
                       leading: Icon(Icons.scatter_plot),
                       title: Text(
-                        'Cluster ' + clusters[index].clusterNr.toString(),
+                        'Cluster ' + (index + 1).toString(),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

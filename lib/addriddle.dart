@@ -241,18 +241,18 @@ class _AddRiddleState extends State<AddRiddle> {
 
   Future sendData() async {
     var request =
-        http.MultipartRequest('POST', Uri.parse(globals.url + 'riddle/rphoto'));
+        http.MultipartRequest('POST', Uri.parse(globals.url + 'riddle/'));
 
     request.fields['category'] = catController.text;
     request.fields['type'] = typeController.text;
     request.fields['param'] = paramController.text;
     request.fields['solution'] = solController.text;
     request.fields['image'] = _imgName;
-    request.fields['final'] = (_checked) ? 'true' : 'false';
+    request.fields['final'] = _checked.toString();
 
     request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + this.pin;
 
-    request.files.add(await http.MultipartFile.fromPath('riddle', _image,
+    request.files.add(await http.MultipartFile.fromPath('rphoto', _image,
         contentType: MediaType('image', 'png')));
 
     return await request.send();

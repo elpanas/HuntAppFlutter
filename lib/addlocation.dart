@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_map_location_picker/google_map_location_picker.dart';
 import 'package:huntapp/cluster.dart';
 import 'package:huntapp/themes.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 import 'containers/eventcontainer.dart';
 import 'containers/gamecontainer.dart';
 import 'containers/optionscontainer.dart';
@@ -40,10 +42,15 @@ class _AddLocationState extends State<AddLocation> {
   final TextEditingController descController = TextEditingController();
   final TextEditingController hintController = TextEditingController();
   final storage = new FlutterSecureStorage();
+  final picker = ImagePicker();
   LocationResult _pickedLocation;
   LocationType _loctype = LocationType.is_middle;
   String _address;
   String pin = '';
+  String _image;
+  String _imgName;
+
+  bool showImgButton;
   bool showRadioStart;
   bool showRadioMiddle;
   bool showRadioFinal;
@@ -59,7 +66,9 @@ class _AddLocationState extends State<AddLocation> {
     this.showRadioMiddle = false;
     this.showRadioFinal = false;
     this.showLocButton = true;
-    this._address = 'No position inserted';
+    this.showImgButton = true;
+    _imgName = 'Insert an image';
+    this._address = 'Pick a position';
     checkUser();
     super.initState();
   }
@@ -182,6 +191,43 @@ class _AddLocationState extends State<AddLocation> {
                         child: TextFormField(
                           enabled: false,
                           decoration: InputDecoration(
+                            hintText: _imgName,
+                            hintStyle: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
+                      (showImgButton)
+                          ? Ink(
+                              decoration: const ShapeDecoration(
+                                color: Colors.orange,
+                                shape: CircleBorder(),
+                              ),
+                              child: IconButton(
+                                  icon: Icon(
+                                    Icons.image_search,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    getImage();
+                                  }))
+                          : IconButton(
+                              icon: Icon(Icons.cancel),
+                              onPressed: () {
+                                setState(() {
+                                  this.showImgButton = true;
+                                  _image = null;
+                                  _imgName = 'Insert an image';
+                                });
+                              }),
+                    ],
+                  ),
+                  Container(height: 15),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextFormField(
+                          enabled: false,
+                          decoration: InputDecoration(
                             hintText: _address,
                             hintStyle: TextStyle(fontSize: 18),
                           ),
@@ -206,7 +252,7 @@ class _AddLocationState extends State<AddLocation> {
                               onPressed: () {
                                 setState(() {
                                   this.showLocButton = true;
-                                  _address = null;
+                                  _address = 'Pick a position!';
                                   _pickedLocation = null;
                                 });
                               }),
@@ -287,10 +333,51 @@ class _AddLocationState extends State<AddLocation> {
         mapStylePath: 'assets/styles/mapStyle.json');
     setState(() => {
           _pickedLocation = result,
-          if (result != null) _address = result.address
+          if (result != null)
+            {_address = result.address, this.showLocButton = false}
         });
   }
 
+  Future getImage() async {
+    final pickedFile =
+        await picker.getImage(source: ImageSource.gallery, imageQuality: 60);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = pickedFile.path;
+        _imgName = path.basename(_image);
+        this.showImgButton = false;
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  Future sendData() async {
+    var request =
+        http.MultipartRequest('POST', Uri.parse(globals.url + 'loc/'));
+
+    request.fields['avg_distance'] = this.event.avgLoc.toString();
+    request.fields['game_id'] = this.game.gameId;
+    request.fields['cluster'] = this.cluster.toString();
+    request.fields['name'] = nameController.text;
+    request.fields['description'] = descController.text;
+    request.fields['hint'] = hintController.text;
+    request.fields['is_start'] = (_loctype == LocationType.is_start).toString();
+    request.fields['is_final'] = (_loctype == LocationType.is_final).toString();
+    request.fields['image'] = (_imgName == 'Insert an image') ? '' : _imgName;
+    request.fields['latitude'] = _pickedLocation.latLng.latitude.toString();
+    request.fields['longitude'] = _pickedLocation.latLng.longitude.toString();
+
+    request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + this.pin;
+
+    request.files.add(await http.MultipartFile.fromPath('lphoto', _image,
+        contentType: MediaType('image', 'png')));
+
+    return await request.send();
+  }
+
+  /*
   Future sendData() async {
     return http.post(
       globals.url + 'loc',
@@ -317,6 +404,7 @@ class _AddLocationState extends State<AddLocation> {
       }),
     );
   }
+  */
 
   void checkUser() async {
     await storage.read(key: 'theme').then((value) => setState(() {

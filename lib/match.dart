@@ -108,7 +108,7 @@ class _MatchPageState extends State<MatchPage> {
             .map((item) => Container(
                     child: Center(
                         child: Image.network(
-                  globals.selfieurl + item.image,
+                  globals.baseurl + item.image,
                   fit: BoxFit.cover,
                   height: MediaQuery.of(context).size.height / 2,
                 ))))

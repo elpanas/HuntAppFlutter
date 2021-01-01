@@ -31,7 +31,8 @@ class _ClusterPageState extends State<ClusterPage> {
   final storage = new FlutterSecureStorage();
   List<Location> locations = List<Location>();
   String pin = '';
-  bool showAddButton = false;
+  bool showAddButton;
+  bool _showDropMenu;
   bool locStartFinalWarn = false;
   String message = '';
   List<int> stepsNrList = [1];
@@ -40,6 +41,8 @@ class _ClusterPageState extends State<ClusterPage> {
 
   @override
   void initState() {
+    showAddButton = false;
+    _showDropMenu = false;
     checkUser();
     super.initState();
   }
@@ -71,25 +74,26 @@ class _ClusterPageState extends State<ClusterPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [Text(message)]),
             ),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: DropdownButtonFormField<int>(
-              decoration: InputDecoration(labelText: 'Extracted Steps'),
-              value: stepsValue,
-              items: stepsNrList.map((int value) {
-                return DropdownMenuItem<int>(
-                  value: value,
-                  child: Text(value.toString()),
-                );
-              }).toList(),
-              onChanged: (int newValue) {
-                setState(() {
-                  stepsValue = newValue;
-                });
-                updateClusterInfo();
-              },
+          if (_showDropMenu)
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: DropdownButtonFormField<int>(
+                decoration: InputDecoration(labelText: 'Extracted Steps'),
+                value: stepsValue,
+                items: stepsNrList.map((int value) {
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Text(value.toString()),
+                  );
+                }).toList(),
+                onChanged: (int newValue) {
+                  setState(() {
+                    stepsValue = newValue;
+                  });
+                  updateClusterInfo();
+                },
+              ),
             ),
-          ),
           Flexible(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -154,7 +158,7 @@ class _ClusterPageState extends State<ClusterPage> {
         HttpHeaders.authorizationHeader: 'Basic ' + this.pin
       },
     ).then((res) {
-      if (res.statusCode == 200) {
+      if (res.statusCode == HttpStatus.ok) {
         final resJson = jsonDecode(res.body);
         locations =
             resJson.map<Location>((json) => Location.fromJson(json)).toList();
@@ -162,20 +166,23 @@ class _ClusterPageState extends State<ClusterPage> {
           locations = locations
               .where((element) => element.locCluster == cluster)
               .toList();
-
-          final totLocs = (locations
-                      .where((element) => element.locStart || element.locFinal)
-                      .length >
-                  0)
-              ? locations.length - 1
-              : locations.length;
-
-          generateList(totLocs);
         });
-      } else {
-        setState(() {
-          message = 'No locations';
-        });
+        try {
+          if (locations.length > 1) {
+            final totLocs = (locations
+                        .where(
+                            (element) => element.locStart || element.locFinal)
+                        .length >
+                    0)
+                ? locations.length - 1
+                : locations.length;
+            generateList(totLocs);
+          }
+        } on Exception catch (_) {
+          setState(() {
+            message = 'No locations';
+          });
+        }
       }
     });
   }
@@ -184,6 +191,7 @@ class _ClusterPageState extends State<ClusterPage> {
     for (var i = 2; i <= totLocs; i++) this.stepsNrList.add(i);
     setState(() {
       stepsNrList = stepsNrList;
+      _showDropMenu = true;
     });
   }
 

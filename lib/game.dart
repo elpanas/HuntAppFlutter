@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_qr_bar_scanner/qr_bar_scanner_camera.dart';
@@ -198,15 +199,20 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildLocation() {
+    final dice = generateRandomNr(); // decide what to show
     return Column(
       children: <Widget>[
-        //Image.network(this.action.locImage),
+        if (this.action.locImage != '')
+          Image.network(globals.baseurl + this.action.locImage),
         _buildsubtitle(),
-        _buildMap(),
-        Text(
-          this.action.locDesc,
-          style: TextStyle(fontSize: 17),
-        ),
+        if (this.action.locImage == '')
+          if ((dice % 2) == 0)
+            _buildMap()
+          else
+            Text(
+              this.action.locDesc,
+              style: TextStyle(fontSize: 17),
+            ),
         _buildQrCodeButton(),
       ],
     );
@@ -371,7 +377,7 @@ class _GamePageState extends State<GamePage> {
       children: <Widget>[
         Text('Solve this riddle',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        Image.network(globals.imageurl + this.riddle.ridImage,
+        Image.network(globals.baseurl + this.riddle.ridImage,
             width: MediaQuery.of(context).size.height / 2.5,
             height: MediaQuery.of(context).size.height / 2.5),
         Divider(),
@@ -487,7 +493,7 @@ class _GamePageState extends State<GamePage> {
             .map((item) => Container(
                     child: Center(
                         child: Image.network(
-                  globals.selfieurl + item.image,
+                  globals.baseurl + item.image,
                   fit: BoxFit.cover,
                   height: MediaQuery.of(context).size.height / 2,
                 ))))
@@ -597,6 +603,12 @@ class _GamePageState extends State<GamePage> {
           this.showProgress = false;
         });
     });
+  }
+
+  // generate a random number 0~5
+  int generateRandomNr() {
+    var rng = new Random();
+    return rng.nextInt(6);
   }
 
   _qrCallback(String code) {
