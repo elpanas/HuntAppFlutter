@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:huntapp/game.dart';
 import 'package:huntapp/containers/eventcontainer.dart';
 import 'package:huntapp/containers/gamecontainer.dart';
 import 'package:huntapp/globals.dart' as globals;
@@ -30,7 +29,7 @@ class _AddGroupState extends State<AddGroup> {
   final storage = new FlutterSecureStorage();
   String _countryInputName = 'No country inserted';
   String _countryInputCode;
-  String pin = '';
+  String _pin = '';
   bool sendok = false;
   String textError = '';
 
@@ -135,11 +134,7 @@ class _AddGroupState extends State<AddGroup> {
                   if (_formKey.currentState.validate()) {
                     sendData().then((res) => {
                           if (res.statusCode == HttpStatus.ok)
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) =>
-                                        GamePage(this.event, this.game)))
+                            Navigator.pop(context, true)
                           else
                             _buildError(context)
                         });
@@ -158,19 +153,18 @@ class _AddGroupState extends State<AddGroup> {
   }
 
   Future sendData() {
-    print(nameController.text);
     return http.post(
       globals.url + 'sgame/',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
       body: jsonEncode(<String, dynamic>{
-        'game_id': this.game.gameId,
+        'game_id': game.gameId,
         'group_name': nameController.text,
         'group_nr_players': int.tryParse(playersController.text),
         'group_flag': _countryInputCode,
-        'riddle_cat': this.game.gameRidCategory
+        'riddle_cat': game.gameRidCategory
       }),
     );
   }
@@ -181,6 +175,6 @@ class _AddGroupState extends State<AddGroup> {
   }
 
   void checkUser() async {
-    await storage.read(key: 'pin').then((value) => {this.pin = value});
+    await storage.read(key: 'pin').then((value) => _pin = value);
   }
 }

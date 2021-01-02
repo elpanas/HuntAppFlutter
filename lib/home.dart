@@ -1,8 +1,5 @@
 import 'dart:io';
-import 'package:huntapp/addevent.dart';
-import 'package:huntapp/addriddle.dart';
 import 'package:huntapp/eventslist.dart';
-import 'package:huntapp/matcheslist.dart';
 import 'package:huntapp/registration.dart';
 import 'package:huntapp/themes.dart';
 import 'package:huntapp/globals.dart' as globals;
@@ -15,17 +12,10 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Code Hunting Game',
-      initialRoute: '/',
-      routes: <String, WidgetBuilder>{
-        '/events': (BuildContext context) => EventsPage(),
-        '/addevent': (BuildContext context) => AddEventPage(),
-        '/addriddle': (BuildContext context) => AddRiddle(),
-        '/matches': (BuildContext context) => MatchesList()
-      },
       theme: lightThemeData,
       darkTheme: darkThemeData,
-      themeMode: ThemeMode.dark,
-      home: HomePageScreen(),
+      themeMode: ThemeMode.system,
+      home: Scaffold(body: HomePageScreen()),
     );
   }
 }
@@ -37,22 +27,20 @@ class HomePageScreen extends StatefulWidget {
 
 class _HomePageStateScreen extends State<HomePageScreen> {
   final storage = new FlutterSecureStorage();
-  MaterialPageRoute nextRoute;
-  String pin;
-  bool logged;
+  String _pin;
+  bool _logged;
 
   @override
   void initState() {
-    pin = '';
-    logged = false;
+    _pin = '';
+    _logged = false;
     checkPin();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Container(
+    return Container(
       color: Color(0xFF212121),
       child: Center(
         child: SingleChildScrollView(
@@ -64,7 +52,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                 padding: const EdgeInsets.all(15.0),
                 child: Image(image: AssetImage('assets/images/title.png')),
               ),
-              if (this.logged)
+              if (_logged)
                 FlatButton(
                   minWidth: MediaQuery.of(context).size.width / 1.2,
                   color: Colors.green,
@@ -80,7 +68,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                     style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
                 ),
-              if (this.logged)
+              if (_logged)
                 FlatButton(
                   minWidth: MediaQuery.of(context).size.width / 1.2,
                   color: Colors.red,
@@ -93,7 +81,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                             {
                               await storage.deleteAll(),
                               setState(() {
-                                this.logged = false;
+                                _logged = false;
                               })
                             }
                           else
@@ -105,7 +93,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                     style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
                 ),
-              if (!this.logged)
+              if (!_logged)
                 FlatButton(
                   minWidth: MediaQuery.of(context).size.width / 1.2,
                   color: Colors.orange,
@@ -113,19 +101,23 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   onPressed: () {
-                    nextRoute = (this.logged)
-                        ? MaterialPageRoute(builder: (_) => EventsPage())
-                        : MaterialPageRoute(
-                            builder: (_) => RegistrationPage(true));
-
-                    Navigator.push(context, nextRoute);
+                    Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => RegistrationPage(true)))
+                        .then((result) => {
+                              if (result != null)
+                                setState(() {
+                                  _logged = true;
+                                })
+                            });
                   },
                   child: Text(
                     'Login',
                     style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
                 ),
-              if (!this.logged)
+              if (!_logged)
                 FlatButton(
                   minWidth: MediaQuery.of(context).size.width / 1.2,
                   color: Colors.grey,
@@ -134,9 +126,15 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                   ),
                   onPressed: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => RegistrationPage(false)));
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => RegistrationPage(false)))
+                        .then((result) => {
+                              if (result != null)
+                                setState(() {
+                                  _logged = true;
+                                })
+                            });
                   },
                   child: Text(
                     'Register',
@@ -147,7 +145,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
           ),
         ),
       ),
-    ));
+    );
   }
 
   ScaffoldFeatureController _buildError(context) {
@@ -160,7 +158,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
           if (value != null)
             {
               setState(() {
-                this.pin = value;
+                _pin = value;
               }),
               checkLogin()
             }
@@ -171,12 +169,12 @@ class _HomePageStateScreen extends State<HomePageScreen> {
     http.get(
       globals.url + 'user/chklogin',
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) => {
           if (res.statusCode == HttpStatus.ok)
             setState(() {
-              this.logged = true;
+              _logged = true;
             })
         });
   }
@@ -185,7 +183,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
     return http.put(
       globals.url + 'user/logout',
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     );
   }

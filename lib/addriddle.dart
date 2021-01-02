@@ -23,18 +23,18 @@ class _AddRiddleState extends State<AddRiddle> {
   final picker = ImagePicker();
   String _image;
   String _imgName;
-  String pin = '';
+  String _pin = '';
   String textError = '';
   final List<String> ridCategories = ['Basic', 'Intermediate', 'Advanced'];
   final List<int> ridTypes = [1, 2, 3];
   String ridCategory = 'Basic';
   int ridType = 1;
   bool _checked = false;
-  bool showImgButton;
+  bool _showImgButton;
 
   @override
   void initState() {
-    showImgButton = true;
+    _showImgButton = true;
     _imgName = 'Insert an image';
     checkUser();
     super.initState();
@@ -145,7 +145,7 @@ class _AddRiddleState extends State<AddRiddle> {
                           ),
                         ),
                       ),
-                      (showImgButton)
+                      (_showImgButton)
                           ? Ink(
                               decoration: const ShapeDecoration(
                                 color: Colors.orange,
@@ -163,7 +163,7 @@ class _AddRiddleState extends State<AddRiddle> {
                               icon: Icon(Icons.cancel),
                               onPressed: () {
                                 setState(() {
-                                  this.showImgButton = true;
+                                  _showImgButton = true;
                                   _image = null;
                                   _imgName = 'Insert an image';
                                 });
@@ -202,7 +202,7 @@ class _AddRiddleState extends State<AddRiddle> {
   }
 
   void checkUser() async {
-    await storage.read(key: 'pin').then((value) => {this.pin = value});
+    await storage.read(key: 'pin').then((value) => _pin = value);
   }
 
   Future getImage() async {
@@ -213,7 +213,7 @@ class _AddRiddleState extends State<AddRiddle> {
       if (pickedFile != null) {
         _image = pickedFile.path;
         _imgName = path.basename(_image);
-        this.showImgButton = false;
+        _showImgButton = false;
       } else {
         print('No image selected.');
       }
@@ -231,7 +231,7 @@ class _AddRiddleState extends State<AddRiddle> {
     request.fields['image'] = _imgName;
     request.fields['final'] = _checked.toString();
 
-    request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + this.pin;
+    request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + _pin;
 
     request.files.add(await http.MultipartFile.fromPath('rphoto', _image,
         contentType: MediaType('image', 'png')));

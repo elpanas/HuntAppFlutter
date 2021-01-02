@@ -31,24 +31,23 @@ class _ClusterListState extends State<ClusterList> {
   List<Cluster> clusters = List<Cluster>();
   List<Location> locations = List<Location>();
   Opts locOptions;
-  Directory dir;
-  String pin = '';
+  Directory _dir;
+  String _pin = '';
   String message = '';
   String urlqrcode = '';
   int locnr;
   int minlocs;
   int maxlocs;
-  bool loctype;
-  bool showQrButton;
-  bool showAddButton;
-  bool showProgress;
+  bool _showQrButton;
+  bool _showAddButton;
+  bool _showProgress;
 
   @override
   void initState() {
     checkUser();
-    this.showQrButton = false;
-    this.showAddButton = false;
-    this.showProgress = true;
+    _showQrButton = false;
+    _showAddButton = false;
+    _showProgress = true;
     _requestDocDirectory();
     super.initState();
   }
@@ -61,12 +60,12 @@ class _ClusterListState extends State<ClusterList> {
 
   void _requestDocDirectory() {
     getApplicationSupportDirectory().then((value) => setState(() {
-          this.dir = value;
+          _dir = value;
         }));
   }
 
   void _deleteTmpDirectory() {
-    if (this.dir.existsSync()) this.dir.deleteSync(recursive: true);
+    if (_dir.existsSync()) _dir.deleteSync(recursive: true);
   }
 
   @override
@@ -75,18 +74,18 @@ class _ClusterListState extends State<ClusterList> {
       appBar: AppBar(
         title: Text('Clusters of ' + game.gameName),
         actions: <Widget>[
-          (showQrButton) ? _buildQrButton(context) : (Container()),
+          (_showQrButton) ? _buildQrButton(context) : (Container()),
         ],
       ),
-      floatingActionButton: (showAddButton)
+      floatingActionButton: (_showAddButton)
           ? FloatingActionButton(
               child: Icon(Icons.add),
               onPressed: () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => ClusterPage(this.event, this.game,
-                            clusters.length + 1, this.locOptions)));
+                        builder: (_) => ClusterPage(
+                            event, game, clusters.length + 1, locOptions)));
               })
           : null,
       body: Column(
@@ -120,7 +119,7 @@ class _ClusterListState extends State<ClusterList> {
                 }),
           ),
           Expanded(child: Text(message)),
-          if (showProgress) _buildLoader()
+          if (_showProgress) _buildLoader()
         ],
       ),
     );
@@ -159,22 +158,22 @@ class _ClusterListState extends State<ClusterList> {
   }
 
   Future requestPdf() async {
-    this.showProgress = true;
+    _showProgress = true;
     return http.get(
-      globals.url + 'loc/pdf/' + this.game.gameId,
+      globals.url + 'loc/pdf/' + game.gameId,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     );
   }
 
   void createPdf(res) {
-    if (this.dir != null)
-      File(this.dir.path + '/' + 'cw_qrcodes.pdf')
+    if (_dir != null)
+      File(_dir.path + '/' + 'cw_qrcodes.pdf')
           .writeAsBytes(res.bodyBytes)
           .then((file) => {
-                this.showProgress = false,
-                OpenFile.open(this.dir.path + '/' + 'cw_qrcodes.pdf',
+                _showProgress = false,
+                OpenFile.open(_dir.path + '/' + 'cw_qrcodes.pdf',
                     type: 'application/pdf')
               });
   }
@@ -184,24 +183,22 @@ class _ClusterListState extends State<ClusterList> {
         .put(globals.url + 'game/qrc',
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
-              HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+              HttpHeaders.authorizationHeader: 'Basic ' + _pin
             },
-            body: jsonEncode(<String, dynamic>{'idg': this.game.gameId}))
+            body: jsonEncode(<String, dynamic>{'idg': game.gameId}))
         .then((res) => {
               if (res.statusCode == HttpStatus.ok)
-                {
-                  setState(() {
-                    this.showProgress = false;
-                  })
-                }
+                setState(() {
+                  _showProgress = false;
+                })
             });
   }
 
   void loadClusters() {
     http.get(
-      globals.url + 'cluster/' + this.game.gameId,
+      globals.url + 'cluster/' + game.gameId,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       if (res.statusCode == HttpStatus.ok) {
@@ -210,12 +207,12 @@ class _ClusterListState extends State<ClusterList> {
             resJson.map<Cluster>((json) => Cluster.fromJson(json)).toList();
         setState(() {
           clusters = clusters;
-          this.showProgress = false;
+          _showProgress = false;
         });
       } else {
         setState(() {
           message = 'No clusters';
-          this.showProgress = false;
+          _showProgress = false;
         });
       }
     });
@@ -225,7 +222,7 @@ class _ClusterListState extends State<ClusterList> {
     http.get(
       globals.url + 'loc/game/' + this.game.gameId,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       if (res.statusCode == HttpStatus.ok) {
@@ -244,26 +241,26 @@ class _ClusterListState extends State<ClusterList> {
 
         if (locOptions.isfinal) {
           setState(() {
-            this.showQrButton = true;
+            _showQrButton = true;
           });
         } else {
           setState(() {
-            this.showAddButton = true;
+            _showAddButton = true;
           });
         }
       } else {
         locOptions = Opts(0, false, false, 0);
         setState(() {
-          this.showAddButton = true;
+          _showAddButton = true;
         });
       }
-      this.showProgress = false;
+      _showProgress = false;
     });
   }
 
   void checkUser() async {
     await storage
         .read(key: 'pin')
-        .then((value) => {this.pin = value, loadClusters(), loadLocations()});
+        .then((value) => {_pin = value, loadClusters(), loadLocations()});
   }
 }

@@ -23,9 +23,9 @@ class _MatchPageState extends State<MatchPage> {
   _MatchPageState(this.match);
   final storage = new FlutterSecureStorage();
   List<Selfie> selfies = List<Selfie>();
-  String pin = '';
+  String _pin = '';
   String message = '';
-  Directory dir;
+  Directory _dir;
   bool showProgress;
   bool showCongrats;
 
@@ -41,7 +41,7 @@ class _MatchPageState extends State<MatchPage> {
   void _requestDocDirectory() {
     getApplicationSupportDirectory().then(
       (value) => setState(() {
-        this.dir = value;
+        _dir = value;
       }),
     );
   }
@@ -135,25 +135,21 @@ class _MatchPageState extends State<MatchPage> {
   }
 
   void checkUser() async {
-    await storage.read(key: 'pin').then((value) => {
-          this.pin = value,
-          this.showCongrats = true,
-          loadPhotos(),
-          loadCertificate()
-        });
+    await storage.read(key: 'pin').then((value) =>
+        {_pin = value, showCongrats = true, loadPhotos(), loadCertificate()});
   }
 
   void loadPhotos() {
-    http.get(globals.url + 'action/selfies/' + this.match.matchId,
+    http.get(globals.url + 'action/selfies/' + match.matchId,
         headers: <String, String>{
-          HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+          HttpHeaders.authorizationHeader: 'Basic ' + _pin
         }).then((res) {
       if (res.statusCode == HttpStatus.ok) {
         final resJson = jsonDecode(res.body);
         selfies = resJson.map<Selfie>((json) => Selfie.fromJson(json)).toList();
         setState(() {
           selfies = selfies;
-          this.showProgress = false;
+          showProgress = false;
         });
       } else
         print('NO');
@@ -164,16 +160,13 @@ class _MatchPageState extends State<MatchPage> {
     http.get(
       globals.url + 'sgame/pdf/' + this.match.matchId,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) => {
           if (res.statusCode == HttpStatus.ok)
             {
-              if (this.dir != null)
-                File(this.dir.path +
-                        '/' +
-                        this.match.matchId +
-                        '-certificate.pdf')
+              if (_dir != null)
+                File(_dir.path + '/' + match.matchId + '-certificate.pdf')
                     .writeAsBytes(res.bodyBytes),
             }
           else
@@ -182,9 +175,9 @@ class _MatchPageState extends State<MatchPage> {
   }
 
   void openCertificate(BuildContext context) {
-    if (this.dir != null)
+    if (_dir != null)
       OpenFile.open(
-        this.dir.path + '/' + this.match.matchId + '-certificate.pdf',
+        _dir.path + '/' + match.matchId + '-certificate.pdf',
         type: 'application/pdf',
       );
     else

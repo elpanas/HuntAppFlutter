@@ -6,8 +6,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:huntapp/addevent.dart';
+import 'package:huntapp/addriddle.dart';
 import 'package:huntapp/containers/eventcontainer.dart';
 import 'package:huntapp/gameslist.dart';
+import 'package:huntapp/matcheslist.dart';
 import 'package:huntapp/themes.dart';
 import 'package:huntapp/globals.dart' as globals;
 
@@ -21,15 +24,15 @@ class _EventsPageState extends State<EventsPage> {
   final TextEditingController searchController = TextEditingController();
   List<Event> events = List<Event>();
   bool _nmode = true;
-  bool isadmin = false;
-  bool showProgress;
-  String pin = '';
+  bool _isadmin = false;
+  bool _showProgress;
+  String _pin = '';
   String message = '';
-  String username = '';
+  String _username = '';
 
   @override
   void initState() {
-    this.showProgress = true;
+    _showProgress = true;
     checkUser();
     super.initState();
   }
@@ -46,7 +49,7 @@ class _EventsPageState extends State<EventsPage> {
       title: 'Events List',
       theme: lightThemeData,
       darkTheme: darkThemeData,
-      themeMode: (this._nmode) ? ThemeMode.dark : ThemeMode.light,
+      themeMode: (_nmode) ? ThemeMode.dark : ThemeMode.light,
       localizationsDelegates: const [
         S.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -69,7 +72,7 @@ class _EventsPageState extends State<EventsPage> {
                 child: Stack(children: <Widget>[
                   Positioned(
                       bottom: 12.0,
-                      child: Text(this.username,
+                      child: Text(_username,
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 24,
@@ -79,13 +82,15 @@ class _EventsPageState extends State<EventsPage> {
               ListTile(
                 leading: Icon(Icons.games_rounded),
                 title: Text('Games & Certificates'),
-                onTap: () => Navigator.pushNamed(context, '/matches'),
+                onTap: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => MatchesList())),
               ),
-              (isadmin)
+              (_isadmin)
                   ? ListTile(
                       leading: Icon(Icons.now_widgets),
                       title: Text('Add New Riddle'),
-                      onTap: () => Navigator.pushNamed(context, '/addriddle'))
+                      onTap: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => AddRiddle())))
                   : Container(),
               Divider(
                 indent: 18,
@@ -107,11 +112,13 @@ class _EventsPageState extends State<EventsPage> {
             ],
           ),
         ),
-        floatingActionButton: (isadmin)
+        floatingActionButton: (_isadmin)
             ? FloatingActionButton(
                 child: Icon(Icons.add),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/addevent');
+                  Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => AddEventPage()))
+                      .then((result) => {if (result != null) loadEvents()});
                 })
             : null,
         body: Column(
@@ -129,7 +136,7 @@ class _EventsPageState extends State<EventsPage> {
               ),
             ),
             Text(message),
-            if (showProgress) _buildLoader(),
+            if (_showProgress) _buildLoader(),
             Expanded(
               child: ListView.builder(
                   itemCount: events.length,
@@ -181,13 +188,15 @@ class _EventsPageState extends State<EventsPage> {
 
   void checkUser() async {
     await storage.read(key: 'theme').then((value) => setState(() {
-          this._nmode = (value == 'dark');
+          _nmode = (value == 'dark');
         }));
-    this.isadmin = (await storage.read(key: 'is_admin') == 'true');
-    this.username = await storage.read(key: 'username');
+    await storage.read(key: 'is_admin').then((value) => setState(() {
+          _isadmin = (value == 'true');
+        }));
+    _username = await storage.read(key: 'username');
     await storage
         .read(key: 'pin')
-        .then((value) => {this.pin = value, loadEvents()});
+        .then((value) => {_pin = value, loadEvents()});
   }
 
   void loadEvents() async {
@@ -200,27 +209,27 @@ class _EventsPageState extends State<EventsPage> {
             '/long/' +
             current.longitude.toString(),
         headers: <String, String>{
-          HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+          HttpHeaders.authorizationHeader: 'Basic ' + _pin
         },
       ).then((res) {
-        if (res.statusCode == 200) {
+        if (res.statusCode == HttpStatus.ok) {
           final resJson = jsonDecode(res.body);
           events = resJson.map<Event>((json) => Event.fromJson(json)).toList();
           setState(() {
             events = events;
-            this.showProgress = false;
+            _showProgress = false;
           });
         } else {
           setState(() {
             message = 'No events';
-            this.showProgress = false;
+            _showProgress = false;
           });
         }
       });
     } catch (_) {
       setState(() {
         message = 'No events';
-        this.showProgress = false;
+        _showProgress = false;
       });
     }
   }

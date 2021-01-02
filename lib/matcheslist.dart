@@ -20,13 +20,11 @@ class _MatchesListState extends State<MatchesList> {
   final storage = new FlutterSecureStorage();
   final TextEditingController searchController = TextEditingController();
   List<Match> matches = List<Match>();
-  bool isadmin;
-  String pin = '';
+  String _pin = '';
   String message = '';
 
   @override
   void initState() {
-    this.isadmin = false;
     checkUser();
     super.initState();
   }
@@ -42,7 +40,7 @@ class _MatchesListState extends State<MatchesList> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Games over'),
-        actions: <Widget>[
+        /*actions: <Widget>[
           Padding(
               padding: EdgeInsets.only(right: 20.0),
               child: GestureDetector(
@@ -51,7 +49,7 @@ class _MatchesListState extends State<MatchesList> {
                     Icons.edit,
                     size: 26.0,
                   ))),
-        ],
+        ],*/
       ),
       body: Column(
         children: <Widget>[
@@ -102,14 +100,14 @@ class _MatchesListState extends State<MatchesList> {
   void checkUser() async {
     await storage
         .read(key: 'pin')
-        .then((value) => {this.pin = value, loadMatches()});
+        .then((value) => {_pin = value, loadMatches()});
   }
 
   void loadMatches() {
     http.get(
       globals.url + 'sgame/terminated',
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       if (res.statusCode == HttpStatus.ok) {

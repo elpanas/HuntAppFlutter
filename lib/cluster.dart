@@ -30,18 +30,18 @@ class _ClusterPageState extends State<ClusterPage> {
   _ClusterPageState(this.event, this.game, this.cluster, this.options);
   final storage = new FlutterSecureStorage();
   List<Location> locations = List<Location>();
-  String pin = '';
-  bool showAddButton;
+  String _pin = '';
+  bool _showAddButton;
   bool _showDropMenu;
-  bool locStartFinalWarn = false;
+  bool _locStartFinalWarn = false;
   String message = '';
   List<int> stepsNrList = [1];
-  int stepsValue = 1;
-  String clusterInfoId;
+  int _stepsValue = 1;
+  String _clusterInfoId;
 
   @override
   void initState() {
-    showAddButton = false;
+    _showAddButton = false;
     _showDropMenu = false;
     checkUser();
     super.initState();
@@ -53,15 +53,19 @@ class _ClusterPageState extends State<ClusterPage> {
       appBar: AppBar(
           title:
               Text('Cluster ' + cluster.toString() + ' of ' + game.gameName)),
-      floatingActionButton: (this.showAddButton)
+      floatingActionButton: (_showAddButton)
           ? FloatingActionButton(
               child: Icon(Icons.add),
               onPressed: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => AddLocation(this.event, this.game,
-                            this.cluster, this.options)));
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                AddLocation(event, game, cluster, options)))
+                    .then((result) => {
+                          if (result != null)
+                            {loadLocations(), loadClusterInfo()}
+                        });
               },
             )
           : null,
@@ -79,7 +83,7 @@ class _ClusterPageState extends State<ClusterPage> {
               padding: const EdgeInsets.all(20.0),
               child: DropdownButtonFormField<int>(
                 decoration: InputDecoration(labelText: 'Extracted Steps'),
-                value: stepsValue,
+                value: _stepsValue,
                 items: stepsNrList.map((int value) {
                   return DropdownMenuItem<int>(
                     value: value,
@@ -88,7 +92,7 @@ class _ClusterPageState extends State<ClusterPage> {
                 }).toList(),
                 onChanged: (int newValue) {
                   setState(() {
-                    stepsValue = newValue;
+                    _stepsValue = newValue;
                   });
                   updateClusterInfo();
                 },
@@ -129,7 +133,7 @@ class _ClusterPageState extends State<ClusterPage> {
                   }),
             ),
           ),
-          if (locStartFinalWarn) _buildWarning(),
+          if (_locStartFinalWarn) _buildWarning(),
         ],
       ),
     );
@@ -144,9 +148,9 @@ class _ClusterPageState extends State<ClusterPage> {
 
   // check if the max number of locations has been reached
   void checkAddButton() {
-    if (!this.options.isfinal || this.options.locnr < this.event.minLoc) {
+    if (!options.isfinal || options.locnr < event.minLoc) {
       setState(() {
-        this.showAddButton = true;
+        _showAddButton = true;
       });
     }
   }
@@ -155,7 +159,7 @@ class _ClusterPageState extends State<ClusterPage> {
     http.get(
       globals.url + 'loc/game/' + game.gameId,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       if (res.statusCode == HttpStatus.ok) {
@@ -188,7 +192,7 @@ class _ClusterPageState extends State<ClusterPage> {
   }
 
   void generateList(int totLocs) {
-    for (var i = 2; i <= totLocs; i++) this.stepsNrList.add(i);
+    for (var i = 2; i <= totLocs; i++) stepsNrList.add(i);
     setState(() {
       stepsNrList = stepsNrList;
       _showDropMenu = true;
@@ -199,19 +203,19 @@ class _ClusterPageState extends State<ClusterPage> {
     http.get(
       globals.url +
           'cluster/game/' +
-          this.game.gameId +
+          game.gameId +
           '/clt/' +
-          this.cluster.toString(),
+          cluster.toString(),
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       if (res.statusCode == HttpStatus.ok) {
         final resJson = jsonDecode(res.body);
 
         setState(() {
-          this.clusterInfoId = resJson['_id'];
-          this.stepsValue = resJson['nr_extracted_loc'];
+          _clusterInfoId = resJson['_id'];
+          _stepsValue = resJson['nr_extracted_loc'];
         });
       }
     });
@@ -223,11 +227,11 @@ class _ClusterPageState extends State<ClusterPage> {
           globals.url + 'cluster',
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
-            HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+            HttpHeaders.authorizationHeader: 'Basic ' + this._pin
           },
           body: jsonEncode(<String, dynamic>{
-            'idc': this.clusterInfoId,
-            'stepsnr': this.stepsValue
+            'idc': this._clusterInfoId,
+            'stepsnr': this._stepsValue
           }),
         )
         .then((res) => {if (res.statusCode == HttpStatus.ok) print('OK')});
@@ -235,7 +239,7 @@ class _ClusterPageState extends State<ClusterPage> {
 
   void checkUser() async {
     await storage.read(key: 'pin').then((value) => {
-          this.pin = value,
+          this._pin = value,
           loadLocations(),
           loadClusterInfo(),
           checkAddButton()

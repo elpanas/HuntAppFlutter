@@ -41,9 +41,9 @@ class _GamePageState extends State<GamePage> {
   final picker = ImagePicker();
   List<Selfie> selfies = List<Selfie>();
   String _image;
-  String pin = '';
-  String idsg = '';
-  Directory dir;
+  String _pin = '';
+  String _idsg = '';
+  Directory _dir;
   ActionClass action;
   Riddle riddle;
 
@@ -87,7 +87,7 @@ class _GamePageState extends State<GamePage> {
 
   void _requestDocDirectory() {
     getApplicationSupportDirectory().then((value) => setState(() {
-          this.dir = value;
+          _dir = value;
         }));
   }
 
@@ -186,10 +186,9 @@ class _GamePageState extends State<GamePage> {
         borderRadius: BorderRadius.circular(10),
       ),
       onPressed: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => AddGroup(this.event, this.game)));
+        Navigator.push(context,
+                MaterialPageRoute(builder: (context) => AddGroup(event, game)))
+            .then((result) => {if (result != null) checkGroup()});
       },
       child: Text(
         'Create a team',
@@ -202,15 +201,15 @@ class _GamePageState extends State<GamePage> {
     final dice = generateRandomNr(); // decide what to show
     return Column(
       children: <Widget>[
-        if (this.action.locImage != '')
-          Image.network(globals.baseurl + this.action.locImage),
+        if (action.locImage != '')
+          Image.network(globals.baseurl + action.locImage),
         _buildsubtitle(),
-        if (this.action.locImage == '')
+        if (action.locImage == '')
           if ((dice % 2) == 0)
             _buildMap()
           else
             Text(
-              this.action.locDesc,
+              action.locDesc,
               style: TextStyle(fontSize: 17),
             ),
         _buildQrCodeButton(),
@@ -248,7 +247,7 @@ class _GamePageState extends State<GamePage> {
               color: Colors.orange,
               label: "T",
               locations: [
-                Location(this.action.locLatitude, this.action.locLongitude),
+                Location(action.locLatitude, action.locLongitude),
               ],
             ),
           ],
@@ -264,7 +263,7 @@ class _GamePageState extends State<GamePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Hint'),
-          content: Text(this.action.locHint),
+          content: Text(action.locHint),
           actions: <Widget>[
             TextButton(
               child: Text(
@@ -293,8 +292,8 @@ class _GamePageState extends State<GamePage> {
         ),
         onPressed: () {
           setState(() {
-            this.showLocationInfo = false;
-            this.showQrScanner = true;
+            showLocationInfo = false;
+            showQrScanner = true;
           });
         },
         label: Text(
@@ -340,8 +339,8 @@ class _GamePageState extends State<GamePage> {
             color: Colors.white,
             onPressed: () {
               setState(() {
-                this.showQrScanner = false;
-                this.showLocationInfo = true;
+                showQrScanner = false;
+                showLocationInfo = true;
               });
             }),
       ),
@@ -359,7 +358,7 @@ class _GamePageState extends State<GamePage> {
         ),
         onPressed: () {
           setState(() {
-            this.showPhotoButton = false;
+            showPhotoButton = false;
           });
           getImage();
         },
@@ -372,16 +371,16 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildRiddle() {
-    print(this.riddle.ridSol);
+    print(riddle.ridSol);
     return Column(
       children: <Widget>[
         Text('Solve this riddle',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        Image.network(globals.baseurl + this.riddle.ridImage,
+        Image.network(globals.baseurl + riddle.ridImage,
             width: MediaQuery.of(context).size.height / 2.5,
             height: MediaQuery.of(context).size.height / 2.5),
         Divider(),
-        Text(this.riddle.ridTxt, style: TextStyle(fontSize: 18)),
+        Text(riddle.ridTxt, style: TextStyle(fontSize: 18)),
         Form(
           key: _formKey,
           child: Column(
@@ -396,10 +395,10 @@ class _GamePageState extends State<GamePage> {
                 validator: (value) {
                   if (value.isEmpty)
                     return 'Please enter some text';
-                  else if (value.toLowerCase() != this.riddle.ridSol) {
+                  else if (value.toLowerCase() != riddle.ridSol) {
                     setState(() {
-                      this.showCountDown = true;
-                      this.showRiddleButton = false;
+                      showCountDown = true;
+                      showRiddleButton = false;
                     });
                     return 'Wrong! Wait for 1 minute';
                   }
@@ -441,9 +440,9 @@ class _GamePageState extends State<GamePage> {
         interval: Duration(milliseconds: 100),
         onFinished: () {
           setState(() {
-            this.showCountDown = false;
-            this.showRiddleButton = true;
-            this.solController.clear();
+            showCountDown = false;
+            showRiddleButton = true;
+            solController.clear();
           });
         });
   }
@@ -525,15 +524,15 @@ class _GamePageState extends State<GamePage> {
 
   void activateGame() {
     http.put(
-      globals.url + 'game/activate/' + this.game.gameId,
+      globals.url + 'game/activate/' + game.gameId,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) => {
           if (res.statusCode == HttpStatus.ok)
             {
               setState(() {
-                this.showActivateButton = false;
+                showActivateButton = false;
               }),
               checkMultipleGame()
             }
@@ -543,34 +542,34 @@ class _GamePageState extends State<GamePage> {
   void checkUser() async {
     await storage
         .read(key: 'pin')
-        .then((value) => {this.pin = value, checkActivate()});
+        .then((value) => {_pin = value, checkActivate()});
     await storage.read(key: 'username').then((username) => {
           setState(() {
-            this.isadmin = (username == event.userName);
+            isadmin = (username == event.userName);
           })
         });
   }
 
   void checkActivate() {
-    if (this.game.gameActive)
+    if (game.gameActive)
       checkMultipleGame();
-    else if (this.game.gameQr)
+    else if (game.gameQr)
       setState(() {
-        this.showActivateButton = true;
-        this.showProgress = false;
+        showActivateButton = true;
+        showProgress = false;
       });
     else
       setState(() {
-        this.showWarning = true;
-        this.showProgress = false;
+        showWarning = true;
+        showProgress = false;
       });
   }
 
   void checkMultipleGame() {
     http.get(
-      globals.url + 'sgame/multiple/' + this.game.gameId,
+      globals.url + 'sgame/multiple/' + game.gameId,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       print(res.body);
@@ -578,30 +577,30 @@ class _GamePageState extends State<GamePage> {
         checkGroup();
       else
         setState(() {
-          this.showWarning = true;
-          this.showProgress = false;
+          showWarning = true;
+          showProgress = false;
         });
     });
   }
 
   void checkGroup() {
     http.get(
-      globals.url + 'sgame/game/' + this.game.gameId,
+      globals.url + 'sgame/game/' + game.gameId,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       if (res.statusCode == 200) {
         final resJson = jsonDecode(res.body);
         setState(() {
-          this.idsg = resJson['_id'];
-          this.groupok = true;
+          _idsg = resJson['_id'];
+          groupok = true;
           loadStep();
         });
       } else
         setState(() {
-          this.groupok = false;
-          this.showProgress = false;
+          groupok = false;
+          showProgress = false;
         });
     });
   }
@@ -614,11 +613,11 @@ class _GamePageState extends State<GamePage> {
 
   _qrCallback(String code) {
     setState(() {
-      if (code == this.action.locId)
-        this.showPhotoButton = true;
+      if (code == action.locId)
+        showPhotoButton = true;
       else
-        this.showLocationInfo = true;
-      this.showQrScanner = false;
+        showLocationInfo = true;
+      showQrScanner = false;
     });
   }
 
@@ -629,7 +628,7 @@ class _GamePageState extends State<GamePage> {
     setState(() {
       if (pickedFile != null) {
         _image = pickedFile.path;
-        this.showProgress = true;
+        showProgress = true;
         sendImage();
       } else {
         print('No image selected.');
@@ -641,9 +640,9 @@ class _GamePageState extends State<GamePage> {
     var request =
         http.MultipartRequest('POST', Uri.parse(globals.url + 'action/gphoto'));
 
-    request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + this.pin;
-    request.fields['ida'] = this.action.actId;
-    request.fields['img'] = 'selfie' + this.action.actId + '.jpg';
+    request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + _pin;
+    request.fields['ida'] = action.actId;
+    request.fields['img'] = 'selfie' + action.actId + '.jpg';
     request.files.add(await http.MultipartFile.fromPath('selfie', _image,
         contentType: MediaType('image', 'jpeg')));
 
@@ -654,21 +653,21 @@ class _GamePageState extends State<GamePage> {
 
   void setReached() {
     http.put(
-      globals.url + 'action/reached/' + this.action.actId,
+      globals.url + 'action/reached/' + action.actId,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       if (res.statusCode == 200) loadRiddle();
     });
-    this.showProgress = true;
+    showProgress = true;
   }
 
   void loadStep() {
     http.get(
-      globals.url + 'action/sgame/' + this.idsg,
+      globals.url + 'action/sgame/' + _idsg,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       if (res.statusCode == HttpStatus.ok) {
@@ -677,8 +676,8 @@ class _GamePageState extends State<GamePage> {
         setState(() {
           action = action;
           if (action.actReach == null) {
-            this.showLocationInfo = true;
-            this.showProgress = false;
+            showLocationInfo = true;
+            showProgress = false;
           } else
             loadRiddle();
         });
@@ -689,9 +688,9 @@ class _GamePageState extends State<GamePage> {
   void loadRiddle() async {
     final myLocale = await Devicelocale.currentLocale;
     http.get(
-      globals.url + 'action/riddle/' + this.action.actId + '/' + myLocale,
+      globals.url + 'action/riddle/' + action.actId + '/' + myLocale,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
       if (res.statusCode == HttpStatus.ok) {
@@ -699,13 +698,13 @@ class _GamePageState extends State<GamePage> {
         riddle = Riddle.fromJson(resJson);
         setState(() {
           riddle = riddle;
-          this.showRiddle = true;
-          this.showProgress = false;
+          showRiddle = true;
+          showProgress = false;
         });
       }
     });
-    this.showProgress = true;
-    this.showRiddleButton = true;
+    showProgress = true;
+    showRiddleButton = true;
   }
 
   void sendRiddle(String solution, BuildContext context) {
@@ -714,30 +713,30 @@ class _GamePageState extends State<GamePage> {
       globals.url + 'action/solution',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
       body: jsonEncode(<String, dynamic>{
-        'ida': this.action.actId,
-        'idr': this.riddle.ridId,
-        'idsg': this.idsg,
+        'ida': action.actId,
+        'idr': riddle.ridId,
+        '_idsg': _idsg,
         'solution': solution,
-        'is_final': this.action.isFinal
+        'is_final': action.isFinal
       }),
     )
         .then((res) {
       if (res.statusCode == HttpStatus.ok) {
         setState(() {
           solController.clear();
-          this.showRiddle = false;
-          if (!this.action.isFinal)
+          showRiddle = false;
+          if (!action.isFinal)
             loadStep();
           else
             setCompleted(context);
         });
       } else {
         setState(() {
-          this.showRiddleButton = false;
-          this.showCountDown = true;
+          showRiddleButton = false;
+          showCountDown = true;
         });
       }
     });
@@ -749,26 +748,25 @@ class _GamePageState extends State<GamePage> {
           globals.url + 'sgame/completed',
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
-            HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+            HttpHeaders.authorizationHeader: 'Basic ' + _pin
           },
-          body: jsonEncode(<String, dynamic>{'idsg': this.idsg}),
+          body: jsonEncode(<String, dynamic>{'_idsg': _idsg}),
         )
         .then((res) => {
               if (res.statusCode == HttpStatus.ok)
                 {
                   loadPhotos(),
                   //loadCertificate(context),
-                  this.showCongrats = true,
-                  this.showProgress = false
+                  showCongrats = true,
+                  showProgress = false
                 }
             });
   }
 
   void loadPhotos() {
-    http.get(globals.url + 'action/selfies/' + this.idsg,
-        headers: <String, String>{
-          HttpHeaders.authorizationHeader: 'Basic ' + this.pin
-        }).then((res) {
+    http.get(globals.url + 'action/selfies/' + _idsg, headers: <String, String>{
+      HttpHeaders.authorizationHeader: 'Basic ' + _pin
+    }).then((res) {
       if (res.statusCode == HttpStatus.ok) {
         final resJson = jsonDecode(res.body);
         selfies = resJson.map<Selfie>((json) => Selfie.fromJson(json)).toList();
@@ -782,28 +780,28 @@ class _GamePageState extends State<GamePage> {
 
   void loadCertificate(BuildContext context) {
     http.get(
-      globals.url + 'sgame/pdf/' + this.idsg,
+      globals.url + 'sgame/pdf/' + _idsg,
       headers: <String, String>{
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) => {
           if (res.statusCode == HttpStatus.ok)
             {
-              if (this.dir != null)
-                File(this.dir.path + '/' + this.idsg + '-certificate.pdf')
+              if (_dir != null)
+                File(_dir.path + '/' + _idsg + '-certificate.pdf')
                     .writeAsBytes(res.bodyBytes),
             }
           else
             _buildError(context),
-          this.showProgress = false
+          showProgress = false
         });
-    this.showProgress = true;
+    showProgress = true;
   }
 
   void openCertificate() {
-    if (this.dir != null)
+    if (_dir != null)
       OpenFile.open(
-        this.dir.path + '/' + this.idsg + '-certificate.pdf',
+        _dir.path + '/' + _idsg + '-certificate.pdf',
         type: 'application/pdf',
       );
   }

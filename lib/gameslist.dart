@@ -24,13 +24,12 @@ class _GameListPageState extends State<GameListPage> {
   final storage = new FlutterSecureStorage();
   final TextEditingController searchController = TextEditingController();
   List<Game> games = List<Game>();
-  bool isadmin;
-  String pin = '';
+  bool _isadmin = false;
+  String _pin = '';
   String message = '';
 
   @override
   void initState() {
-    this.isadmin = false;
     checkUser();
     super.initState();
   }
@@ -57,12 +56,13 @@ class _GameListPageState extends State<GameListPage> {
                   ))),
         ],*/
       ),
-      floatingActionButton: (isadmin)
+      floatingActionButton: (_isadmin)
           ? FloatingActionButton(
               child: Icon(Icons.add),
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => AddGamePage(this.event)));
+                        MaterialPageRoute(builder: (_) => AddGamePage(event)))
+                    .then((result) => {if (result != null) loadGames()});
               })
           : null,
       body: Column(
@@ -91,8 +91,7 @@ class _GameListPageState extends State<GameListPage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) =>
-                                    GamePage(this.event, games[index])));
+                                builder: (_) => GamePage(event, games[index])));
                       },
                       leading: Icon(Icons.gamepad),
                       title: Text(
@@ -113,11 +112,12 @@ class _GameListPageState extends State<GameListPage> {
   }
 
   void checkUser() async {
-    this.isadmin = (await storage.read(key: 'username') == event.userName);
-    print(this.isadmin);
-    await storage
-        .read(key: 'pin')
-        .then((value) => {this.pin = value, loadGames()});
+    await storage.read(key: 'username').then((value) => {
+          setState(() {
+            _isadmin = (value == event.userName);
+          })
+        });
+    await storage.read(key: 'pin').then((value) => {_pin = value, loadGames()});
   }
 
   void loadGames() {
@@ -125,10 +125,10 @@ class _GameListPageState extends State<GameListPage> {
       globals.url + 'game/event/' + event.eventId,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
     ).then((res) {
-      if (res.statusCode == 200) {
+      if (res.statusCode == HttpStatus.ok) {
         final resJson = jsonDecode(res.body);
         games = resJson.map<Game>((json) => Game.fromJson(json)).toList();
         setState(() {

@@ -150,25 +150,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                       pswController.text)
                                   .then((res) {
                                 if (res.statusCode == HttpStatus.ok) {
-                                  setVars(res).then((_) => {
-                                        Navigator.pushNamedAndRemoveUntil(
-                                            context,
-                                            '/events',
-                                            ModalRoute.withName('/'))
-                                      });
+                                  setVars(res).then(
+                                      (_) => Navigator.pop(context, true));
                                 }
                               });
                             } else
                               makeLogin(nameController.text, pswController.text)
                                   .then((res) {
                                 if (res.statusCode == HttpStatus.ok) {
-                                  setVars(res).then((_) => {
-                                        Navigator.pushNamedAndRemoveUntil(
-                                            context,
-                                            '/events',
-                                            ModalRoute.withName('/'))
-                                      });
-                                }
+                                  setVars(res).then(
+                                      (_) => Navigator.pop(context, true));
+                                } else
+                                  _buildError(context);
                               });
                           }
                         },
@@ -182,6 +175,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ),
           ),
         ));
+  }
+
+  ScaffoldFeatureController _buildError(context) {
+    return Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text('Something went wrong :(')));
   }
 
   void setTitle() {

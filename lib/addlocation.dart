@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_map_location_picker/google_map_location_picker.dart';
-import 'package:huntapp/cluster.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:huntapp/containers/eventcontainer.dart';
@@ -43,28 +42,27 @@ class _AddLocationState extends State<AddLocation> {
   LocationResult _pickedLocation;
   LocationType _loctype = LocationType.is_middle;
   String _address;
-  String pin = '';
+  String _pin = '';
   String _image;
   String _imgName;
 
-  bool showImgButton;
-  bool showRadioStart;
-  bool showRadioMiddle;
-  bool showRadioFinal;
-  bool showLocButton;
-  bool sendok;
+  bool _showImgButton;
+  bool _showRadioStart;
+  bool _showRadioMiddle;
+  bool _showRadioFinal;
+  bool _showLocButton;
 
   _AddLocationState(this.event, this.game, this.cluster, this.options);
 
   @override
   void initState() {
-    this.showRadioStart = false;
-    this.showRadioMiddle = false;
-    this.showRadioFinal = false;
-    this.showLocButton = true;
-    this.showImgButton = true;
+    _showRadioStart = false;
+    _showRadioMiddle = false;
+    _showRadioFinal = false;
+    _showLocButton = true;
+    _showImgButton = true;
     _imgName = 'Insert an image';
-    this._address = 'Pick a position';
+    _address = 'Pick a position';
     checkUser();
     super.initState();
   }
@@ -122,7 +120,7 @@ class _AddLocationState extends State<AddLocation> {
                 Container(height: 10),
                 Row(
                   children: <Widget>[
-                    if (showRadioStart)
+                    if (_showRadioStart)
                       Expanded(
                         child: RadioListTile<LocationType>(
                           title: const Text('Start'),
@@ -135,7 +133,7 @@ class _AddLocationState extends State<AddLocation> {
                           },
                         ),
                       ),
-                    if (showRadioMiddle)
+                    if (_showRadioMiddle)
                       Expanded(
                         child: RadioListTile<LocationType>(
                           title: const Text('Middle'),
@@ -148,7 +146,7 @@ class _AddLocationState extends State<AddLocation> {
                           },
                         ),
                       ),
-                    if (showRadioFinal)
+                    if (_showRadioFinal)
                       Expanded(
                         child: RadioListTile<LocationType>(
                           title: const Text('Final'),
@@ -174,7 +172,7 @@ class _AddLocationState extends State<AddLocation> {
                         ),
                       ),
                     ),
-                    (showImgButton)
+                    (_showImgButton)
                         ? Ink(
                             decoration: const ShapeDecoration(
                               color: Colors.orange,
@@ -192,7 +190,7 @@ class _AddLocationState extends State<AddLocation> {
                             icon: Icon(Icons.cancel),
                             onPressed: () {
                               setState(() {
-                                this.showImgButton = true;
+                                _showImgButton = true;
                                 _image = null;
                                 _imgName = 'Insert an image';
                               });
@@ -211,7 +209,7 @@ class _AddLocationState extends State<AddLocation> {
                         ),
                       ),
                     ),
-                    (showLocButton)
+                    (_showLocButton)
                         ? Ink(
                             decoration: const ShapeDecoration(
                               color: Colors.orange,
@@ -229,7 +227,7 @@ class _AddLocationState extends State<AddLocation> {
                             icon: Icon(Icons.cancel),
                             onPressed: () {
                               setState(() {
-                                this.showLocButton = true;
+                                _showLocButton = true;
                                 _address = 'Pick a position!';
                                 _pickedLocation = null;
                               });
@@ -248,17 +246,7 @@ class _AddLocationState extends State<AddLocation> {
                       if (_formKey.currentState.validate()) {
                         sendData().then((res) => {
                               if (res.statusCode == HttpStatus.ok)
-                                {
-                                  this.options.locnr++,
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) => ClusterPage(
-                                              this.event,
-                                              this.game,
-                                              this.cluster,
-                                              this.options)))
-                                }
+                                Navigator.pop(context, true)
                               else
                                 _buildError(context)
                             });
@@ -285,17 +273,16 @@ class _AddLocationState extends State<AddLocation> {
 
   void checkLocations() {
     setState(() {
-      if (this.options.locnr == 0)
-        this.showRadioStart = true;
-      else if (((this.event.maxLoc - this.options.locnr) == 1) &&
-          (this.cluster == this.options.totClusters))
-        this.showRadioFinal = true;
-      else if (this.options.locnr < this.event.minLoc)
-        this.showRadioMiddle = true;
+      if (options.locnr == 0)
+        _showRadioStart = true;
+      else if (((event.maxLoc - options.locnr) == 1) &&
+          (cluster == options.totClusters))
+        _showRadioFinal = true;
+      else if (options.locnr < event.minLoc)
+        _showRadioMiddle = true;
       else {
-        this.showRadioMiddle = true;
-        if (this.cluster == this.options.totClusters)
-          this.showRadioFinal = true;
+        _showRadioMiddle = true;
+        if (cluster == options.totClusters) _showRadioFinal = true;
       }
     });
   }
@@ -311,7 +298,7 @@ class _AddLocationState extends State<AddLocation> {
     setState(() => {
           _pickedLocation = result,
           if (result != null)
-            {_address = result.address, this.showLocButton = false}
+            {_address = result.address, _showLocButton = false}
         });
   }
 
@@ -323,7 +310,7 @@ class _AddLocationState extends State<AddLocation> {
       if (pickedFile != null) {
         _image = pickedFile.path;
         _imgName = path.basename(_image);
-        this.showImgButton = false;
+        _showImgButton = false;
       } else {
         print('No image selected.');
       }
@@ -334,9 +321,9 @@ class _AddLocationState extends State<AddLocation> {
     var request =
         http.MultipartRequest('POST', Uri.parse(globals.url + 'loc/'));
 
-    request.fields['avg_distance'] = this.event.avgLoc.toString();
-    request.fields['game_id'] = this.game.gameId;
-    request.fields['cluster'] = this.cluster.toString();
+    request.fields['avg_distance'] = event.avgLoc.toString();
+    request.fields['game_id'] = game.gameId;
+    request.fields['cluster'] = cluster.toString();
     request.fields['name'] = nameController.text;
     request.fields['description'] = descController.text;
     request.fields['hint'] = hintController.text;
@@ -346,7 +333,7 @@ class _AddLocationState extends State<AddLocation> {
     request.fields['latitude'] = _pickedLocation.latLng.latitude.toString();
     request.fields['longitude'] = _pickedLocation.latLng.longitude.toString();
 
-    request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + this.pin;
+    request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + _pin;
 
     request.files.add(await http.MultipartFile.fromPath('lphoto', _image,
         contentType: MediaType('image', 'png')));
@@ -360,7 +347,7 @@ class _AddLocationState extends State<AddLocation> {
       globals.url + 'loc',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + this._pin
       },
       body: jsonEncode(<String, dynamic>{
         'avg_distance': this.event.avgLoc,
@@ -386,6 +373,6 @@ class _AddLocationState extends State<AddLocation> {
   void checkUser() async {
     await storage
         .read(key: 'pin')
-        .then((value) => {this.pin = value, checkLocations()});
+        .then((value) => {_pin = value, checkLocations()});
   }
 }

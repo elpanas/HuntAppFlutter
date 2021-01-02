@@ -19,8 +19,7 @@ class _AddEventPageState extends State<AddEventPage> {
   final TextEditingController avglocController = TextEditingController();
   // Create storage
   final storage = new FlutterSecureStorage();
-  bool isadmin;
-  String pin = '';
+  String _pin = '';
   String textError = '';
 
   @override
@@ -123,8 +122,7 @@ class _AddEventPageState extends State<AddEventPage> {
                         if (_formKey.currentState.validate()) {
                           sendData().then((res) {
                             if (res.statusCode == HttpStatus.ok)
-                              Navigator.pushNamedAndRemoveUntil(context,
-                                  '/events', ModalRoute.withName('/events'));
+                              Navigator.pop(context, true);
                             else
                               _buildError(context);
                           });
@@ -144,8 +142,7 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   void checkUser() async {
-    this.isadmin = (await storage.read(key: 'is_admin') == 'true');
-    await storage.read(key: 'pin').then((value) => {this.pin = value});
+    await storage.read(key: 'pin').then((value) => _pin = value);
   }
 
   Future sendData() async {
@@ -154,7 +151,7 @@ class _AddEventPageState extends State<AddEventPage> {
       globals.url + 'event',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        HttpHeaders.authorizationHeader: 'Basic ' + this.pin
+        HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
       body: jsonEncode(<String, dynamic>{
         'name': nameController.text,
