@@ -1,8 +1,11 @@
 import 'dart:io';
+import 'package:huntapp/addevent.dart';
+import 'package:huntapp/addriddle.dart';
 import 'package:huntapp/eventslist.dart';
+import 'package:huntapp/matcheslist.dart';
 import 'package:huntapp/registration.dart';
 import 'package:huntapp/themes.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/globals.dart' as globals;
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -12,12 +15,17 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Code Hunting Game',
+      initialRoute: '/',
+      routes: <String, WidgetBuilder>{
+        '/events': (BuildContext context) => EventsPage(),
+        '/addevent': (BuildContext context) => AddEventPage(),
+        '/addriddle': (BuildContext context) => AddRiddle(),
+        '/matches': (BuildContext context) => MatchesList()
+      },
       theme: lightThemeData,
       darkTheme: darkThemeData,
       themeMode: ThemeMode.dark,
-      home: Scaffold(
-        body: HomePageScreen(),
-      ),
+      home: HomePageScreen(),
     );
   }
 }
@@ -43,7 +51,8 @@ class _HomePageStateScreen extends State<HomePageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Scaffold(
+        body: Container(
       color: Color(0xFF212121),
       child: Center(
         child: SingleChildScrollView(
@@ -138,7 +147,7 @@ class _HomePageStateScreen extends State<HomePageScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   ScaffoldFeatureController _buildError(context) {

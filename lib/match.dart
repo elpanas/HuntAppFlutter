@@ -8,7 +8,7 @@ import 'package:huntapp/containers/matchcontainer.dart';
 import 'package:huntapp/containers/selfiecontainer.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/globals.dart' as globals;
 
 class MatchPage extends StatefulWidget {
   final Match match;

@@ -94,11 +94,10 @@ class _AddGamePageState extends State<AddGamePage> {
                         if (_formKey.currentState.validate()) {
                           sendData().then((res) => {
                                 if (res.statusCode == HttpStatus.ok)
-                                  Navigator.push(
+                                  Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (_) =>
-                                              SingleEventPage(event)))
+                                          builder: (_) => GameListPage(event)))
                                 else
                                   _buildError(context)
                               });

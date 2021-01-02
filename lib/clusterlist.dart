@@ -3,14 +3,14 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'cluster.dart';
-import 'containers/clustercontainer.dart';
-import 'containers/eventcontainer.dart';
-import 'containers/gamecontainer.dart';
-import 'containers/locationcontainer.dart';
-import 'containers/optionscontainer.dart';
+import 'package:huntapp/cluster.dart';
+import 'package:huntapp/containers/clustercontainer.dart';
+import 'package:huntapp/containers/eventcontainer.dart';
+import 'package:huntapp/containers/gamecontainer.dart';
+import 'package:huntapp/containers/locationcontainer.dart';
+import 'package:huntapp/containers/optionscontainer.dart';
 import 'package:path_provider/path_provider.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/globals.dart' as globals;
 import 'package:open_file/open_file.dart';
 
 class ClusterList extends StatefulWidget {

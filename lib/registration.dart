@@ -1,50 +1,20 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:huntapp/eventslist.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/globals.dart' as globals;
 
-class RegistrationPage extends StatelessWidget {
+class RegistrationPage extends StatefulWidget {
   final login;
 
   RegistrationPage(this.login);
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Sign Up',
-      theme: ThemeData(primarySwatch: Colors.orange),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.orange,
-        primaryColor: Colors.orange,
-        brightness: Brightness.dark,
-        backgroundColor: const Color(0xFF212121),
-        accentColor: Colors.orangeAccent,
-        floatingActionButtonTheme:
-            FloatingActionButtonThemeData(backgroundColor: Colors.orange),
-        dividerColor: Colors.black12,
-      ),
-      themeMode: ThemeMode.dark,
-      home: Scaffold(
-        appBar: AppBar(title: Text('Sign Up')),
-        body: RegistrationScreen(login),
-      ),
-    );
-  }
+  _RegistrationPageState createState() => _RegistrationPageState(login);
 }
 
-class RegistrationScreen extends StatefulWidget {
-  final login;
-
-  RegistrationScreen(this.login);
-
-  @override
-  _RegistrationScreenState createState() => _RegistrationScreenState(login);
-}
-
-class _RegistrationScreenState extends State<RegistrationScreen> {
+class _RegistrationPageState extends State<RegistrationPage> {
   final login;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController firstController = TextEditingController();
@@ -54,8 +24,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final storage = FlutterSecureStorage();
   var _checked = false;
   String pin = '';
+  String _title = 'Sign In';
 
-  _RegistrationScreenState(this.login);
+  _RegistrationPageState(this.login);
+
+  @override
+  void initState() {
+    setTitle();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -69,137 +46,148 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                if (!login)
-                  TextFormField(
-                    controller: firstController,
-                    keyboardType: TextInputType.name,
-                    decoration: InputDecoration(
-                      hintText: 'Type your first name',
-                      hintStyle: TextStyle(fontSize: 18),
+    return Scaffold(
+        appBar: AppBar(title: Text(_title)),
+        body: Center(
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    if (!login)
+                      TextFormField(
+                        controller: firstController,
+                        keyboardType: TextInputType.name,
+                        decoration: InputDecoration(
+                          hintText: 'Type your first name',
+                          hintStyle: TextStyle(fontSize: 18),
+                        ),
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                      ),
+                    if (!login) Container(height: 25),
+                    if (!login)
+                      TextFormField(
+                        controller: fullController,
+                        keyboardType: TextInputType.name,
+                        decoration: InputDecoration(
+                          hintText: 'Type your last name',
+                          hintStyle: TextStyle(fontSize: 18),
+                        ),
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                      ),
+                    if (!login) Container(height: 25),
+                    TextFormField(
+                      controller: nameController,
+                      keyboardType: TextInputType.name,
+                      decoration: InputDecoration(
+                        icon: Icon(Icons.account_circle),
+                        hintText: 'Type the username',
+                        hintStyle: TextStyle(fontSize: 18),
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
                     ),
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'Please enter some text';
-                      }
-                      return null;
-                    },
-                  ),
-                if (!login) Container(height: 25),
-                if (!login)
-                  TextFormField(
-                    controller: fullController,
-                    keyboardType: TextInputType.name,
-                    decoration: InputDecoration(
-                      hintText: 'Type your last name',
-                      hintStyle: TextStyle(fontSize: 18),
+                    Container(height: 25),
+                    TextFormField(
+                      controller: pswController,
+                      keyboardType: TextInputType.visiblePassword,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        icon: Icon(Icons.lock),
+                        hintText: 'Type your password',
+                        hintStyle: TextStyle(fontSize: 18),
+                      ),
+                      validator: (value) {
+                        if (value.trim().isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
                     ),
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'Please enter some text';
-                      }
-                      return null;
-                    },
-                  ),
-                if (!login) Container(height: 25),
-                TextFormField(
-                  controller: nameController,
-                  keyboardType: TextInputType.name,
-                  decoration: InputDecoration(
-                    icon: Icon(Icons.account_circle),
-                    hintText: 'Type the username',
-                    hintStyle: TextStyle(fontSize: 18),
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Please enter some text';
-                    }
-                    return null;
-                  },
-                ),
-                Container(height: 25),
-                TextFormField(
-                  controller: pswController,
-                  keyboardType: TextInputType.visiblePassword,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    icon: Icon(Icons.lock),
-                    hintText: 'Type your password',
-                    hintStyle: TextStyle(fontSize: 18),
-                  ),
-                  validator: (value) {
-                    if (value.trim().isEmpty) {
-                      return 'Please enter some text';
-                    }
-                    return null;
-                  },
-                ),
-                Container(height: 25),
-                if (!login)
-                  CheckboxListTile(
-                    title: Text('Check if you are an organizer'),
-                    value: _checked,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _checked = value;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                  ),
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: RaisedButton(
-                    child: Text(
-                      'Submit',
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
-                    color: Colors.orange,
-                    onPressed: () {
-                      if (_formKey.currentState.validate()) {
-                        if (!login) {
-                          createUser(firstController.text, fullController.text,
-                                  nameController.text, pswController.text)
-                              .then((res) {
-                            if (res.statusCode == HttpStatus.ok) {
-                              setVars(res).then((_) => {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => EventsPage()))
-                                  });
-                            }
+                    Container(height: 25),
+                    if (!login)
+                      CheckboxListTile(
+                        title: Text('Check if you are an organizer'),
+                        value: _checked,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _checked = value;
                           });
-                        } else
-                          makeLogin(nameController.text, pswController.text)
-                              .then((res) {
-                            if (res.statusCode == HttpStatus.ok) {
-                              setVars(res).then((_) => {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => EventsPage()))
-                                  });
-                            }
-                          });
-                      }
-                    },
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0)),
-                  ),
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                      ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: RaisedButton(
+                        child: Text(
+                          'Submit',
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
+                        color: Colors.orange,
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            if (!login) {
+                              createUser(
+                                      firstController.text,
+                                      fullController.text,
+                                      nameController.text,
+                                      pswController.text)
+                                  .then((res) {
+                                if (res.statusCode == HttpStatus.ok) {
+                                  setVars(res).then((_) => {
+                                        Navigator.pushNamedAndRemoveUntil(
+                                            context,
+                                            '/events',
+                                            ModalRoute.withName('/'))
+                                      });
+                                }
+                              });
+                            } else
+                              makeLogin(nameController.text, pswController.text)
+                                  .then((res) {
+                                if (res.statusCode == HttpStatus.ok) {
+                                  setVars(res).then((_) => {
+                                        Navigator.pushNamedAndRemoveUntil(
+                                            context,
+                                            '/events',
+                                            ModalRoute.withName('/'))
+                                      });
+                                }
+                              });
+                          }
+                        },
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0)),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        ));
+  }
+
+  void setTitle() {
+    setState(() {
+      if (!this.login) _title = 'Sign Up';
+    });
   }
 
   Future createUser(String first, String full, String name, String psw) async {

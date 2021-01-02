@@ -5,10 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/addlocation.dart';
 import 'package:huntapp/containers/eventcontainer.dart';
-import 'containers/gamecontainer.dart';
+import 'package:huntapp/containers/gamecontainer.dart';
 import 'package:huntapp/containers/locationcontainer.dart';
 import 'package:huntapp/containers/optionscontainer.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/globals.dart' as globals;
 
 class ClusterPage extends StatefulWidget {
   final Event event;

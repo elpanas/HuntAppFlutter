@@ -1,21 +1,18 @@
 import 'dart:io';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
-import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_map_location_picker/google_map_location_picker.dart';
 import 'package:huntapp/cluster.dart';
-import 'package:huntapp/themes.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
-import 'containers/eventcontainer.dart';
-import 'containers/gamecontainer.dart';
-import 'containers/optionscontainer.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/containers/eventcontainer.dart';
+import 'package:huntapp/containers/gamecontainer.dart';
+import 'package:huntapp/containers/optionscontainer.dart';
+import 'package:huntapp/globals.dart' as globals;
 
 class AddLocation extends StatefulWidget {
   final Event event;
@@ -56,7 +53,6 @@ class _AddLocationState extends State<AddLocation> {
   bool showRadioFinal;
   bool showLocButton;
   bool sendok;
-  bool _nmode = true;
 
   _AddLocationState(this.event, this.game, this.cluster, this.options);
 
@@ -84,216 +80,197 @@ class _AddLocationState extends State<AddLocation> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: lightThemeData,
-      darkTheme: darkThemeData,
-      themeMode: (this._nmode) ? ThemeMode.dark : ThemeMode.light,
-      localizationsDelegates: const [
-        S.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const <Locale>[Locale('en', ''), Locale('it', '')],
-      home: Scaffold(
-        appBar: AppBar(title: Text('New Location')),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-        body: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: nameController,
-                    keyboardType: TextInputType.name,
-                    decoration: InputDecoration(
-                      hintText: 'Type the name of the location',
-                      hintStyle: TextStyle(fontSize: 18),
+    return Scaffold(
+      appBar: AppBar(title: Text('New Location')),
+      body: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  keyboardType: TextInputType.name,
+                  decoration: InputDecoration(
+                    hintText: 'Type the name of the location',
+                    hintStyle: TextStyle(fontSize: 18),
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: descController,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    hintText: 'Type a description (Optional)',
+                    hintStyle: TextStyle(fontSize: 18),
+                  ),
+                ),
+                TextFormField(
+                  controller: hintController,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    hintText: 'Type an hint (Optional)',
+                    hintStyle: TextStyle(fontSize: 18),
+                  ),
+                ),
+                Container(height: 10),
+                Row(
+                  children: <Widget>[
+                    if (showRadioStart)
+                      Expanded(
+                        child: RadioListTile<LocationType>(
+                          title: const Text('Start'),
+                          value: LocationType.is_start,
+                          groupValue: _loctype,
+                          onChanged: (LocationType value) {
+                            setState(() {
+                              _loctype = value;
+                            });
+                          },
+                        ),
+                      ),
+                    if (showRadioMiddle)
+                      Expanded(
+                        child: RadioListTile<LocationType>(
+                          title: const Text('Middle'),
+                          value: LocationType.is_middle,
+                          groupValue: _loctype,
+                          onChanged: (LocationType value) {
+                            setState(() {
+                              _loctype = value;
+                            });
+                          },
+                        ),
+                      ),
+                    if (showRadioFinal)
+                      Expanded(
+                        child: RadioListTile<LocationType>(
+                          title: const Text('Final'),
+                          value: LocationType.is_final,
+                          groupValue: _loctype,
+                          onChanged: (LocationType value) {
+                            setState(() {
+                              _loctype = value;
+                            });
+                          },
+                        ),
+                      )
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextFormField(
+                        enabled: false,
+                        decoration: InputDecoration(
+                          hintText: _imgName,
+                          hintStyle: TextStyle(fontSize: 18),
+                        ),
+                      ),
                     ),
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'Please enter some text';
+                    (showImgButton)
+                        ? Ink(
+                            decoration: const ShapeDecoration(
+                              color: Colors.orange,
+                              shape: CircleBorder(),
+                            ),
+                            child: IconButton(
+                                icon: Icon(
+                                  Icons.image_search,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  getImage();
+                                }))
+                        : IconButton(
+                            icon: Icon(Icons.cancel),
+                            onPressed: () {
+                              setState(() {
+                                this.showImgButton = true;
+                                _image = null;
+                                _imgName = 'Insert an image';
+                              });
+                            }),
+                  ],
+                ),
+                Container(height: 15),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextFormField(
+                        enabled: false,
+                        decoration: InputDecoration(
+                          hintText: _address,
+                          hintStyle: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
+                    (showLocButton)
+                        ? Ink(
+                            decoration: const ShapeDecoration(
+                              color: Colors.orange,
+                              shape: CircleBorder(),
+                            ),
+                            child: IconButton(
+                                icon: Icon(
+                                  Icons.add_location,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  getPlace();
+                                }))
+                        : IconButton(
+                            icon: Icon(Icons.cancel),
+                            onPressed: () {
+                              setState(() {
+                                this.showLocButton = true;
+                                _address = 'Pick a position!';
+                                _pickedLocation = null;
+                              });
+                            }),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                  child: FlatButton(
+                    minWidth: MediaQuery.of(context).size.width / 1.2,
+                    color: Colors.orange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    onPressed: () {
+                      if (_formKey.currentState.validate()) {
+                        sendData().then((res) => {
+                              if (res.statusCode == HttpStatus.ok)
+                                {
+                                  this.options.locnr++,
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => ClusterPage(
+                                              this.event,
+                                              this.game,
+                                              this.cluster,
+                                              this.options)))
+                                }
+                              else
+                                _buildError(context)
+                            });
                       }
-                      return null;
                     },
-                  ),
-                  TextFormField(
-                    controller: descController,
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(
-                      hintText: 'Type a description (Optional)',
-                      hintStyle: TextStyle(fontSize: 18),
+                    child: Text(
+                      'Save Location',
+                      style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
                   ),
-                  TextFormField(
-                    controller: hintController,
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(
-                      hintText: 'Type an hint (Optional)',
-                      hintStyle: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                  Container(height: 10),
-                  Row(
-                    children: <Widget>[
-                      if (showRadioStart)
-                        Expanded(
-                          child: RadioListTile<LocationType>(
-                            title: const Text('Start'),
-                            value: LocationType.is_start,
-                            groupValue: _loctype,
-                            onChanged: (LocationType value) {
-                              setState(() {
-                                _loctype = value;
-                              });
-                            },
-                          ),
-                        ),
-                      if (showRadioMiddle)
-                        Expanded(
-                          child: RadioListTile<LocationType>(
-                            title: const Text('Middle'),
-                            value: LocationType.is_middle,
-                            groupValue: _loctype,
-                            onChanged: (LocationType value) {
-                              setState(() {
-                                _loctype = value;
-                              });
-                            },
-                          ),
-                        ),
-                      if (showRadioFinal)
-                        Expanded(
-                          child: RadioListTile<LocationType>(
-                            title: const Text('Final'),
-                            value: LocationType.is_final,
-                            groupValue: _loctype,
-                            onChanged: (LocationType value) {
-                              setState(() {
-                                _loctype = value;
-                              });
-                            },
-                          ),
-                        )
-                    ],
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: TextFormField(
-                          enabled: false,
-                          decoration: InputDecoration(
-                            hintText: _imgName,
-                            hintStyle: TextStyle(fontSize: 18),
-                          ),
-                        ),
-                      ),
-                      (showImgButton)
-                          ? Ink(
-                              decoration: const ShapeDecoration(
-                                color: Colors.orange,
-                                shape: CircleBorder(),
-                              ),
-                              child: IconButton(
-                                  icon: Icon(
-                                    Icons.image_search,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () {
-                                    getImage();
-                                  }))
-                          : IconButton(
-                              icon: Icon(Icons.cancel),
-                              onPressed: () {
-                                setState(() {
-                                  this.showImgButton = true;
-                                  _image = null;
-                                  _imgName = 'Insert an image';
-                                });
-                              }),
-                    ],
-                  ),
-                  Container(height: 15),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: TextFormField(
-                          enabled: false,
-                          decoration: InputDecoration(
-                            hintText: _address,
-                            hintStyle: TextStyle(fontSize: 18),
-                          ),
-                        ),
-                      ),
-                      (showLocButton)
-                          ? Ink(
-                              decoration: const ShapeDecoration(
-                                color: Colors.orange,
-                                shape: CircleBorder(),
-                              ),
-                              child: IconButton(
-                                  icon: Icon(
-                                    Icons.add_location,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () {
-                                    getPlace();
-                                  }))
-                          : IconButton(
-                              icon: Icon(Icons.cancel),
-                              onPressed: () {
-                                setState(() {
-                                  this.showLocButton = true;
-                                  _address = 'Pick a position!';
-                                  _pickedLocation = null;
-                                });
-                              }),
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20.0),
-                    child: FlatButton(
-                      minWidth: MediaQuery.of(context).size.width / 1.2,
-                      color: Colors.orange,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      onPressed: () {
-                        if (_formKey.currentState.validate()) {
-                          sendData().then((res) => {
-                                if (res.statusCode == HttpStatus.ok)
-                                  {
-                                    this.options.locnr++,
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => ClusterPage(
-                                                this.event,
-                                                this.game,
-                                                this.cluster,
-                                                this.options)))
-                                  }
-                                else
-                                  _buildError(context)
-                              });
-                        }
-                      },
-                      child: Text(
-                        'Save Location',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -407,9 +384,6 @@ class _AddLocationState extends State<AddLocation> {
   */
 
   void checkUser() async {
-    await storage.read(key: 'theme').then((value) => setState(() {
-          this._nmode = (value == 'dark');
-        }));
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, checkLocations()});

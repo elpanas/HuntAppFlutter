@@ -1,17 +1,15 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_map_location_picker/generated/l10n.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:huntapp/addevent.dart';
-import 'package:huntapp/addriddle.dart';
 import 'package:huntapp/containers/eventcontainer.dart';
 import 'package:huntapp/gameslist.dart';
-import 'package:huntapp/matcheslist.dart';
 import 'package:huntapp/themes.dart';
-
-import 'globals.dart' as globals;
+import 'package:huntapp/globals.dart' as globals;
 
 class EventsPage extends StatefulWidget {
   @override
@@ -48,7 +46,14 @@ class _EventsPageState extends State<EventsPage> {
       title: 'Events List',
       theme: lightThemeData,
       darkTheme: darkThemeData,
-      themeMode: (_nmode) ? ThemeMode.dark : ThemeMode.light,
+      themeMode: (this._nmode) ? ThemeMode.dark : ThemeMode.light,
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const <Locale>[Locale('en', ''), Locale('it', '')],
       home: Scaffold(
         appBar: AppBar(title: Text('Events')),
         drawer: Drawer(
@@ -74,15 +79,13 @@ class _EventsPageState extends State<EventsPage> {
               ListTile(
                 leading: Icon(Icons.games_rounded),
                 title: Text('Games & Certificates'),
-                onTap: () => Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => MatchesList())),
+                onTap: () => Navigator.pushNamed(context, '/matches'),
               ),
               (isadmin)
                   ? ListTile(
                       leading: Icon(Icons.now_widgets),
                       title: Text('Add New Riddle'),
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => AddRiddle())))
+                      onTap: () => Navigator.pushNamed(context, '/addriddle'))
                   : Container(),
               Divider(
                 indent: 18,
@@ -108,8 +111,7 @@ class _EventsPageState extends State<EventsPage> {
             ? FloatingActionButton(
                 child: Icon(Icons.add),
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => AddEventPage()));
+                  Navigator.pushNamed(context, '/addevent');
                 })
             : null,
         body: Column(
@@ -139,8 +141,7 @@ class _EventsPageState extends State<EventsPage> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (_) =>
-                                      SingleEventPage(events[index])));
+                                  builder: (_) => GameListPage(events[index])));
                         },
                         leading: Icon(Icons.event),
                         title: Text(

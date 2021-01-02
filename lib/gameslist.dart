@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
-import 'addgame.dart';
-import 'containers/eventcontainer.dart';
+import 'package:huntapp/addgame.dart';
+import 'package:huntapp/containers/eventcontainer.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'game.dart';
-import 'containers/gamecontainer.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/game.dart';
+import 'package:huntapp/containers/gamecontainer.dart';
+import 'package:huntapp/globals.dart' as globals;
 
-class SingleEventPage extends StatefulWidget {
+class GameListPage extends StatefulWidget {
   final Event event;
-  SingleEventPage(this.event);
+  GameListPage(this.event);
 
   @override
-  _SingleEventPageState createState() => _SingleEventPageState(event);
+  _GameListPageState createState() => _GameListPageState(event);
 }
 
-class _SingleEventPageState extends State<SingleEventPage> {
+class _GameListPageState extends State<GameListPage> {
   final Event event;
-  _SingleEventPageState(this.event);
+  _GameListPageState(this.event);
 
   final storage = new FlutterSecureStorage();
   final TextEditingController searchController = TextEditingController();

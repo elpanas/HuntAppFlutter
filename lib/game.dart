@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:io';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_qr_bar_scanner/qr_bar_scanner_camera.dart';
 import 'package:huntapp/addgroup.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_static_maps_controller/google_static_maps_controller.dart';
@@ -16,11 +16,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:huntapp/clusterlist.dart';
-import 'containers/eventcontainer.dart';
-import 'containers/gamecontainer.dart';
+import 'package:huntapp/containers/eventcontainer.dart';
+import 'package:huntapp/containers/gamecontainer.dart';
 import 'package:huntapp/containers/actioncontainer.dart';
-import 'containers/riddlecontainer.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/containers/riddlecontainer.dart';
+import 'package:huntapp/globals.dart' as globals;
 
 class GamePage extends StatefulWidget {
   final Event event;
@@ -544,10 +544,11 @@ class _GamePageState extends State<GamePage> {
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, checkActivate()});
-    //print(await storage.read(key: 'username'));
-    await storage
-        .read(key: 'username')
-        .then((username) => {this.isadmin = (username == event.userName)});
+    await storage.read(key: 'username').then((username) => {
+          setState(() {
+            this.isadmin = (username == event.userName);
+          })
+        });
   }
 
   void checkActivate() {

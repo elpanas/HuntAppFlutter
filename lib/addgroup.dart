@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/game.dart';
-import 'containers/eventcontainer.dart';
-import 'containers/gamecontainer.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/containers/eventcontainer.dart';
+import 'package:huntapp/containers/gamecontainer.dart';
+import 'package:huntapp/globals.dart' as globals;
 import 'package:country_picker/country_picker.dart';
 
 class AddGroup extends StatefulWidget {

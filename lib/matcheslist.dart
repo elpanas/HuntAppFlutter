@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:huntapp/containers/matchcontainer.dart';
 import 'package:huntapp/match.dart';
-import 'package:huntapp/themes.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'globals.dart' as globals;
+import 'package:huntapp/globals.dart' as globals;
 
 class MatchesList extends StatefulWidget {
   MatchesList();
@@ -22,7 +21,6 @@ class _MatchesListState extends State<MatchesList> {
   final TextEditingController searchController = TextEditingController();
   List<Match> matches = List<Match>();
   bool isadmin;
-  bool _nmode = true;
   String pin = '';
   String message = '';
 
@@ -41,83 +39,67 @@ class _MatchesListState extends State<MatchesList> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Events List',
-      theme: lightThemeData,
-      darkTheme: darkThemeData,
-      themeMode: (_nmode) ? ThemeMode.dark : ThemeMode.light,
-      home: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-        appBar: AppBar(
-          title: Text('Games over'),
-          actions: <Widget>[
-            Padding(
-                padding: EdgeInsets.only(right: 20.0),
-                child: GestureDetector(
-                    onTap: () {},
-                    child: Icon(
-                      Icons.edit,
-                      size: 26.0,
-                    ))),
-          ],
-        ),
-        body: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                onChanged: (_) => searchGames(searchController.text),
-                controller: searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  hintStyle: TextStyle(fontSize: 14),
-                  prefixIcon: Icon(Icons.search),
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Games over'),
+        actions: <Widget>[
+          Padding(
+              padding: EdgeInsets.only(right: 20.0),
+              child: GestureDetector(
+                  onTap: () {},
+                  child: Icon(
+                    Icons.edit,
+                    size: 26.0,
+                  ))),
+        ],
+      ),
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (_) => searchGames(searchController.text),
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Search...',
+                hintStyle: TextStyle(fontSize: 14),
+                prefixIcon: Icon(Icons.search),
               ),
             ),
-            Text(message),
-            Expanded(
-              child: ListView.builder(
-                  itemCount: matches.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Card(
-                      elevation: 2,
-                      child: ListTile(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => MatchPage(matches[index])));
-                        },
-                        leading: Icon(Icons.gamepad),
-                        title: Text(
-                          matches[index].gameName,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+          ),
+          Text(message),
+          Expanded(
+            child: ListView.builder(
+                itemCount: matches.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Card(
+                    elevation: 2,
+                    child: ListTile(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => MatchPage(matches[index])));
+                      },
+                      leading: Icon(Icons.gamepad),
+                      title: Text(
+                        matches[index].gameName,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
-                    );
-                  }),
-            ),
-          ],
-        ),
+                    ),
+                  );
+                }),
+          ),
+        ],
       ),
     );
   }
 
   void checkUser() async {
-    await storage.read(key: 'theme').then((value) => setState(() {
-          this._nmode = (value == 'dark');
-        }));
     await storage
         .read(key: 'pin')
         .then((value) => {this.pin = value, loadMatches()});
