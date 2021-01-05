@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class MatchesList extends StatefulWidget {
   MatchesList();
@@ -21,7 +22,8 @@ class _MatchesListState extends State<MatchesList> {
   final TextEditingController searchController = TextEditingController();
   List<Match> matches = List<Match>();
   String _pin = '';
-  String message = '';
+  bool _showProgress = true;
+  bool _showMessage = false;
 
   @override
   void initState() {
@@ -39,7 +41,7 @@ class _MatchesListState extends State<MatchesList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Games over'),
+        title: Text('matchesTitle').tr(),
         /*actions: <Widget>[
           Padding(
               padding: EdgeInsets.only(right: 20.0),
@@ -59,13 +61,14 @@ class _MatchesListState extends State<MatchesList> {
               onChanged: (_) => searchGames(searchController.text),
               controller: searchController,
               decoration: InputDecoration(
-                hintText: 'Search...',
+                hintText: tr('search'),
                 hintStyle: TextStyle(fontSize: 14),
                 prefixIcon: Icon(Icons.search),
               ),
             ),
           ),
-          Text(message),
+          if (_showMessage) _buildMessage(),
+          if (_showProgress) _buildLoader(),
           Expanded(
             child: ListView.builder(
                 itemCount: matches.length,
@@ -97,6 +100,28 @@ class _MatchesListState extends State<MatchesList> {
     );
   }
 
+  Widget _buildLoader() {
+    return Expanded(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessage() {
+    return Expanded(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: Center(
+          child: Text('nofinishedgames').tr(),
+        ),
+      ),
+    );
+  }
+
   void checkUser() async {
     await storage
         .read(key: 'pin')
@@ -115,10 +140,12 @@ class _MatchesListState extends State<MatchesList> {
         matches = resJson.map<Match>((json) => Match.fromJson(json)).toList();
         setState(() {
           matches = matches;
+          _showProgress = false;
         });
       } else {
         setState(() {
-          message = 'No games over';
+          _showMessage = true;
+          _showProgress = false;
         });
       }
     });

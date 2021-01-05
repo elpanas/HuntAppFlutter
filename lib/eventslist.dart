@@ -13,6 +13,7 @@ import 'package:huntapp/gameslist.dart';
 import 'package:huntapp/matcheslist.dart';
 import 'package:huntapp/themes.dart';
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class EventsPage extends StatefulWidget {
   @override
@@ -50,15 +51,16 @@ class _EventsPageState extends State<EventsPage> {
       theme: lightThemeData,
       darkTheme: darkThemeData,
       themeMode: (_nmode) ? ThemeMode.dark : ThemeMode.light,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       localizationsDelegates: const [
         S.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const <Locale>[Locale('en', ''), Locale('it', '')],
       home: Scaffold(
-        appBar: AppBar(title: Text('Events')),
+        appBar: AppBar(title: Text('eventstitle').tr()),
         drawer: Drawer(
           child: ListView(
             padding: EdgeInsets.zero,
@@ -81,14 +83,14 @@ class _EventsPageState extends State<EventsPage> {
               ),
               ListTile(
                 leading: Icon(Icons.games_rounded),
-                title: Text('Games & Certificates'),
+                title: Text('gamecert').tr(),
                 onTap: () => Navigator.push(
                     context, MaterialPageRoute(builder: (_) => MatchesList())),
               ),
               (_isadmin)
                   ? ListTile(
                       leading: Icon(Icons.now_widgets),
-                      title: Text('Add New Riddle'),
+                      title: Text('newriddle').tr(),
                       onTap: () => Navigator.push(context,
                           MaterialPageRoute(builder: (_) => AddRiddle())))
                   : Container(),
@@ -97,8 +99,8 @@ class _EventsPageState extends State<EventsPage> {
                 endIndent: 18,
               ),
               SwitchListTile(
-                title: const Text('Night Mode'),
-                secondary: const Icon(Icons.nights_stay),
+                title: Text('nightmode').tr(),
+                secondary: Icon(Icons.nights_stay),
                 value: _nmode,
                 onChanged: (bool value) {
                   setState(() {
@@ -129,7 +131,7 @@ class _EventsPageState extends State<EventsPage> {
                 onChanged: (_) => searchEvents(searchController.text),
                 controller: searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search...',
+                  hintText: tr('search'),
                   hintStyle: TextStyle(fontSize: 14),
                   prefixIcon: Icon(Icons.search),
                 ),
@@ -159,7 +161,8 @@ class _EventsPageState extends State<EventsPage> {
                             color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
-                        subtitle: Text('Organizer: ' + events[index].userName),
+                        subtitle: Text('organizer')
+                            .tr(args: [events[index].userName]),
                       ),
                     );
                   }),
@@ -221,14 +224,14 @@ class _EventsPageState extends State<EventsPage> {
           });
         } else {
           setState(() {
-            message = 'No events';
+            message = tr('noevents');
             _showProgress = false;
           });
         }
       });
     } catch (_) {
       setState(() {
-        message = 'No events';
+        message = tr('noevents');
         _showProgress = false;
       });
     }

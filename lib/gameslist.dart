@@ -8,6 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/game.dart';
 import 'package:huntapp/containers/gamecontainer.dart';
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class GameListPage extends StatefulWidget {
   final Event event;
@@ -25,6 +26,8 @@ class _GameListPageState extends State<GameListPage> {
   final TextEditingController searchController = TextEditingController();
   List<Game> games = List<Game>();
   bool _isadmin = false;
+  bool _showProgress = true;
+  bool _showMessage = false;
   String _pin = '';
   String message = '';
 
@@ -43,9 +46,8 @@ class _GameListPageState extends State<GameListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Games (' + event.eventName + ')'),
-        /*actions: <Widget>[
+      appBar: AppBar(title: Text('gamestitle').tr(args: [event.eventName])
+          /*actions: <Widget>[
           Padding(
               padding: EdgeInsets.only(right: 20.0),
               child: GestureDetector(
@@ -55,7 +57,7 @@ class _GameListPageState extends State<GameListPage> {
                     size: 26.0,
                   ))),
         ],*/
-      ),
+          ),
       floatingActionButton: (_isadmin)
           ? FloatingActionButton(
               child: Icon(Icons.add),
@@ -73,13 +75,14 @@ class _GameListPageState extends State<GameListPage> {
               onChanged: (_) => searchGames(searchController.text),
               controller: searchController,
               decoration: InputDecoration(
-                hintText: 'Search...',
+                hintText: tr('search'),
                 hintStyle: TextStyle(fontSize: 14),
                 prefixIcon: Icon(Icons.search),
               ),
             ),
           ),
-          Text(message),
+          if (_showMessage) _buildMessage(),
+          if (_showProgress) _buildLoader(),
           Expanded(
             child: ListView.builder(
                 itemCount: games.length,
@@ -111,6 +114,28 @@ class _GameListPageState extends State<GameListPage> {
     );
   }
 
+  Widget _buildLoader() {
+    return Expanded(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessage() {
+    return Expanded(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: Center(
+          child: Text('nogames').tr(),
+        ),
+      ),
+    );
+  }
+
   void checkUser() async {
     await storage.read(key: 'username').then((value) => {
           setState(() {
@@ -133,10 +158,12 @@ class _GameListPageState extends State<GameListPage> {
         games = resJson.map<Game>((json) => Game.fromJson(json)).toList();
         setState(() {
           games = games;
+          _showProgress = false;
         });
       } else {
         setState(() {
-          message = 'No games';
+          _showMessage = true;
+          _showProgress = false;
         });
       }
     });

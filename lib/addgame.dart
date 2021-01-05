@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/containers/eventcontainer.dart';
 import 'globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class AddGamePage extends StatefulWidget {
   final Event event;
@@ -43,7 +44,7 @@ class _AddGamePageState extends State<AddGamePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('New Game')),
+        appBar: AppBar(title: Text('newgame').tr()),
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -54,7 +55,7 @@ class _AddGamePageState extends State<AddGamePage> {
                   _buidlFieldName(),
                   Container(height: 25),
                   DropdownButtonFormField<String>(
-                    decoration: InputDecoration(labelText: 'Riddles Level'),
+                    decoration: InputDecoration(labelText: tr('ridLevel')),
                     value: gameCategory,
                     items: gameCategories.map((String value) {
                       return DropdownMenuItem<String>(
@@ -70,7 +71,7 @@ class _AddGamePageState extends State<AddGamePage> {
                   ),
                   Container(height: 25),
                   CheckboxListTile(
-                    title: Text('Check if you want an open game'),
+                    title: Text('opengame').tr(),
                     value: _checked,
                     onChanged: (bool value) {
                       setState(() {
@@ -100,9 +101,9 @@ class _AddGamePageState extends State<AddGamePage> {
                         }
                       },
                       child: Text(
-                        'Save Game',
+                        'saveGame',
                         style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
+                      ).tr(),
                     ),
                   ),
                 ],
@@ -117,12 +118,12 @@ class _AddGamePageState extends State<AddGamePage> {
       controller: nameController,
       keyboardType: TextInputType.name,
       decoration: InputDecoration(
-        hintText: 'Type the name of the game',
+        hintText: tr('hintGame'),
         hintStyle: TextStyle(fontSize: 18),
       ),
       validator: (value) {
         if (value.isEmpty) {
-          return 'Please enter some text';
+          return tr('emptyText');
         }
         return null;
       },

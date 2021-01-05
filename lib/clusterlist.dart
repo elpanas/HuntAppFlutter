@@ -12,6 +12,7 @@ import 'package:huntapp/containers/optionscontainer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:huntapp/globals.dart' as globals;
 import 'package:open_file/open_file.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ClusterList extends StatefulWidget {
   final Event event;
@@ -40,14 +41,14 @@ class _ClusterListState extends State<ClusterList> {
   int maxlocs;
   bool _showQrButton;
   bool _showAddButton;
-  bool _showProgress;
+  bool _showProgress = true;
+  bool _showMessage = false;
 
   @override
   void initState() {
     checkUser();
     _showQrButton = false;
     _showAddButton = false;
-    _showProgress = true;
     _requestDocDirectory();
     super.initState();
   }
@@ -72,7 +73,7 @@ class _ClusterListState extends State<ClusterList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Clusters of ' + game.gameName),
+        title: Text('Clusters (' + game.gameName + ')'),
         actions: <Widget>[
           (_showQrButton) ? _buildQrButton(context) : (Container()),
         ],
@@ -91,6 +92,8 @@ class _ClusterListState extends State<ClusterList> {
       body: Column(
         children: [
           Container(height: 25),
+          if (_showMessage) _buildMessage(),
+          if (_showProgress) _buildLoader(),
           Expanded(
             child: ListView.builder(
                 itemCount: clusters.length,
@@ -117,10 +120,30 @@ class _ClusterListState extends State<ClusterList> {
                     ),
                   );
                 }),
-          ),
-          Expanded(child: Text(message)),
-          if (_showProgress) _buildLoader()
+          )
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoader() {
+    return Expanded(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessage() {
+    return Expanded(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: Center(
+          child: Text('noclusters').tr(),
+        ),
       ),
     );
   }
@@ -141,15 +164,6 @@ class _ClusterListState extends State<ClusterList> {
               Icons.picture_as_pdf,
               size: 26.0,
             )));
-  }
-
-  Widget _buildLoader() {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height / 1.3,
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
   }
 
   ScaffoldFeatureController _buildError(context) {
@@ -211,7 +225,7 @@ class _ClusterListState extends State<ClusterList> {
         });
       } else {
         setState(() {
-          message = 'No clusters';
+          _showMessage = true;
           _showProgress = false;
         });
       }

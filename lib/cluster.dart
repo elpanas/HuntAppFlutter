@@ -9,6 +9,7 @@ import 'package:huntapp/containers/gamecontainer.dart';
 import 'package:huntapp/containers/locationcontainer.dart';
 import 'package:huntapp/containers/optionscontainer.dart';
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class ClusterPage extends StatefulWidget {
   final Event event;
@@ -33,6 +34,8 @@ class _ClusterPageState extends State<ClusterPage> {
   String _pin = '';
   bool _showAddButton;
   bool _showDropMenu;
+  bool _showProgress = true;
+  bool _showMessage = false;
   bool _locStartFinalWarn = false;
   String message = '';
   List<int> stepsNrList = [1];
@@ -51,8 +54,8 @@ class _ClusterPageState extends State<ClusterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title:
-              Text('Cluster ' + cluster.toString() + ' of ' + game.gameName)),
+          title: Text(
+              'Cluster ' + cluster.toString() + ' ( ' + game.gameName + ')')),
       floatingActionButton: (_showAddButton)
           ? FloatingActionButton(
               child: Icon(Icons.add),
@@ -82,7 +85,7 @@ class _ClusterPageState extends State<ClusterPage> {
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: DropdownButtonFormField<int>(
-                decoration: InputDecoration(labelText: 'Extracted Steps'),
+                decoration: InputDecoration(labelText: tr('clusterSteps')),
                 value: _stepsValue,
                 items: stepsNrList.map((int value) {
                   return DropdownMenuItem<int>(
@@ -98,6 +101,8 @@ class _ClusterPageState extends State<ClusterPage> {
                 },
               ),
             ),
+          if (_showMessage) _buildMessage(),
+          if (_showProgress) _buildLoader(),
           Flexible(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -120,8 +125,9 @@ class _ClusterPageState extends State<ClusterPage> {
                         leading: Icon(Icons.location_on),
                         title: Text(
                           (locations[index].locFinal)
-                              ? 'Final location'
-                              : 'Location ' + (index + 1).toString(),
+                              ? tr('clusterFinalLoc')
+                              : tr('clusterLoc',
+                                  args: [(index + 1).toString()]),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -142,7 +148,29 @@ class _ClusterPageState extends State<ClusterPage> {
   Widget _buildWarning() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      child: Text('You have to add Start and/or final locations yet'),
+      child: Text('You have to add Start and/or final locations').tr(),
+    );
+  }
+
+  Widget _buildLoader() {
+    return Expanded(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessage() {
+    return Expanded(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: Center(
+          child: Text('nolocs').tr(),
+        ),
+      ),
     );
   }
 
@@ -170,6 +198,7 @@ class _ClusterPageState extends State<ClusterPage> {
           locations = locations
               .where((element) => element.locCluster == cluster)
               .toList();
+          _showProgress = false;
         });
         try {
           if (locations.length > 1) {
@@ -184,7 +213,7 @@ class _ClusterPageState extends State<ClusterPage> {
           }
         } on Exception catch (_) {
           setState(() {
-            message = 'No locations';
+            _showMessage = true;
           });
         }
       }

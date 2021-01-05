@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class AddRiddle extends StatefulWidget {
   @override
@@ -53,7 +54,7 @@ class _AddRiddleState extends State<AddRiddle> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('New Riddle')),
+        appBar: AppBar(title: Text('newRiddle').tr()),
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -64,7 +65,7 @@ class _AddRiddleState extends State<AddRiddle> {
                   Row(children: <Widget>[
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(labelText: 'Level'),
+                        decoration: InputDecoration(labelText: tr('ridLevel')),
                         value: ridCategory,
                         items: ridCategories.map((String value) {
                           return DropdownMenuItem<String>(
@@ -82,7 +83,7 @@ class _AddRiddleState extends State<AddRiddle> {
                     Container(width: 20),
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        decoration: InputDecoration(labelText: 'Type'),
+                        decoration: InputDecoration(labelText: tr('ridType')),
                         value: ridType,
                         items: ridTypes.map((int value) {
                           return DropdownMenuItem<int>(
@@ -103,7 +104,7 @@ class _AddRiddleState extends State<AddRiddle> {
                     controller: paramController,
                     keyboardType: TextInputType.text,
                     decoration: InputDecoration(
-                      hintText: 'Type a parameter if needed',
+                      hintText: tr('hintRidParam'),
                       hintStyle: TextStyle(fontSize: 18),
                     ),
                   ),
@@ -112,19 +113,19 @@ class _AddRiddleState extends State<AddRiddle> {
                     controller: solController,
                     keyboardType: TextInputType.text,
                     decoration: InputDecoration(
-                      hintText: 'Type the solution',
+                      hintText: tr('hintRidSol'),
                       hintStyle: TextStyle(fontSize: 18),
                     ),
                     validator: (value) {
                       if (value.isEmpty) {
-                        return 'Please enter some text';
+                        return tr('emptyText');
                       }
                       return null;
                     },
                   ),
                   Container(height: 25),
                   CheckboxListTile(
-                    title: Text('Check if it is "Final"'),
+                    title: Text('ridFinal').tr(),
                     value: _checked,
                     onChanged: (bool value) {
                       setState(() {
@@ -165,7 +166,7 @@ class _AddRiddleState extends State<AddRiddle> {
                                 setState(() {
                                   _showImgButton = true;
                                   _image = null;
-                                  _imgName = 'Insert an image';
+                                  _imgName = tr('hintImage');
                                 });
                               }),
                     ],
@@ -189,9 +190,9 @@ class _AddRiddleState extends State<AddRiddle> {
                         }
                       },
                       child: Text(
-                        'Save Riddle',
+                        'saveRiddle',
                         style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
+                      ).tr(),
                     ),
                   ),
                 ],

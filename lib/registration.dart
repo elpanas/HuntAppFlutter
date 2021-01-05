@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class RegistrationPage extends StatefulWidget {
   final login;
@@ -24,7 +25,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final storage = FlutterSecureStorage();
   var _checked = false;
   String pin = '';
-  String _title = 'Sign In';
+  String _title = tr('login');
 
   _RegistrationPageState(this.login);
 
@@ -61,12 +62,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         controller: firstController,
                         keyboardType: TextInputType.name,
                         decoration: InputDecoration(
-                          hintText: 'Type your first name',
+                          hintText: tr('hintName'),
                           hintStyle: TextStyle(fontSize: 18),
                         ),
                         validator: (value) {
                           if (value.isEmpty) {
-                            return 'Please enter some text';
+                            return tr('emptyText');
                           }
                           return null;
                         },
@@ -77,12 +78,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         controller: fullController,
                         keyboardType: TextInputType.name,
                         decoration: InputDecoration(
-                          hintText: 'Type your last name',
+                          hintText: tr('hintSurname'),
                           hintStyle: TextStyle(fontSize: 18),
                         ),
                         validator: (value) {
                           if (value.isEmpty) {
-                            return 'Please enter some text';
+                            return tr('emptyText');
                           }
                           return null;
                         },
@@ -93,12 +94,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       keyboardType: TextInputType.name,
                       decoration: InputDecoration(
                         icon: Icon(Icons.account_circle),
-                        hintText: 'Type the username',
+                        hintText: tr('hintUser'),
                         hintStyle: TextStyle(fontSize: 18),
                       ),
                       validator: (value) {
                         if (value.isEmpty) {
-                          return 'Please enter some text';
+                          return tr('emptyText');
                         }
                         return null;
                       },
@@ -110,12 +111,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       obscureText: true,
                       decoration: InputDecoration(
                         icon: Icon(Icons.lock),
-                        hintText: 'Type your password',
+                        hintText: tr('hintPassword'),
                         hintStyle: TextStyle(fontSize: 18),
                       ),
                       validator: (value) {
                         if (value.trim().isEmpty) {
-                          return 'Please enter some text';
+                          return tr('emptyText');
                         }
                         return null;
                       },
@@ -136,9 +137,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       child: RaisedButton(
                         child: Text(
-                          'Submit',
+                          'submit',
                           style: TextStyle(color: Colors.white, fontSize: 20),
-                        ),
+                        ).tr(),
                         color: Colors.orange,
                         onPressed: () {
                           if (_formKey.currentState.validate()) {
@@ -184,7 +185,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   void setTitle() {
     setState(() {
-      if (!this.login) _title = 'Sign Up';
+      if (!this.login) _title = tr('registration');
     });
   }
 

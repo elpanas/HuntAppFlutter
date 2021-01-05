@@ -9,6 +9,7 @@ import 'package:huntapp/containers/selfiecontainer.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class MatchPage extends StatefulWidget {
   final Match match;
@@ -73,10 +74,7 @@ class _MatchPageState extends State<MatchPage> {
     return Center(
       child: Column(children: [
         Container(height: 20),
-        Text(
-          'Click the button below to download your certificate',
-          style: TextStyle(fontSize: 12),
-        ),
+        Text('matchDesc', style: TextStyle(fontSize: 12)).tr(),
         Divider(),
         FlatButton.icon(
             onPressed: () {
@@ -91,13 +89,10 @@ class _MatchPageState extends State<MatchPage> {
               Icons.file_download,
               color: Colors.black,
             ),
-            label: Text('Download your certificate!',
-                style: TextStyle(color: Colors.black))),
+            label: Text('matchButton', style: TextStyle(color: Colors.black))
+                .tr()),
         Divider(),
-        Text(
-          'Take care of saving a local copy of it, please',
-          style: TextStyle(fontSize: 12),
-        ),
+        Text('matchWarn', style: TextStyle(fontSize: 12)).tr()
       ]),
     );
   }

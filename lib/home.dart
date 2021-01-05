@@ -6,6 +6,8 @@ import 'package:huntapp/globals.dart' as globals;
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+// import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -15,6 +17,9 @@ class HomePage extends StatelessWidget {
       theme: lightThemeData,
       darkTheme: darkThemeData,
       themeMode: ThemeMode.system,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       home: Scaffold(body: HomePageScreen()),
     );
   }
@@ -64,9 +69,9 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                         MaterialPageRoute(builder: (_) => EventsPage()));
                   },
                   child: Text(
-                    'Enter',
+                    'enter',
                     style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
+                  ).tr(),
                 ),
               if (_logged)
                 FlatButton(
@@ -89,9 +94,9 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                         });
                   },
                   child: Text(
-                    'Logout',
+                    'logout',
                     style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
+                  ).tr(),
                 ),
               if (!_logged)
                 FlatButton(
@@ -113,9 +118,9 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                             });
                   },
                   child: Text(
-                    'Login',
+                    'login',
                     style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
+                  ).tr(),
                 ),
               if (!_logged)
                 FlatButton(
@@ -137,9 +142,9 @@ class _HomePageStateScreen extends State<HomePageScreen> {
                             });
                   },
                   child: Text(
-                    'Register',
+                    'registration',
                     style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
+                  ).tr(),
                 ),
             ],
           ),

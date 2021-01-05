@@ -7,6 +7,7 @@ import 'package:huntapp/containers/eventcontainer.dart';
 import 'package:huntapp/containers/gamecontainer.dart';
 import 'package:huntapp/globals.dart' as globals;
 import 'package:country_picker/country_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AddGroup extends StatefulWidget {
   final Event event;
@@ -27,7 +28,7 @@ class _AddGroupState extends State<AddGroup> {
   final TextEditingController photoController = TextEditingController();
 
   final storage = new FlutterSecureStorage();
-  String _countryInputName = 'No country inserted';
+  String _countryInputName = tr('emptyCountry');
   String _countryInputCode;
   String _pin = '';
   bool sendok = false;
@@ -50,7 +51,7 @@ class _AddGroupState extends State<AddGroup> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Aggiungi gruppo')),
+      appBar: AppBar(title: Text('addGroup').tr()),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
@@ -61,12 +62,12 @@ class _AddGroupState extends State<AddGroup> {
                 controller: nameController,
                 keyboardType: TextInputType.name,
                 decoration: InputDecoration(
-                  hintText: 'Type the name of the group',
+                  hintText: tr('hintGroup'),
                   hintStyle: TextStyle(fontSize: 18),
                 ),
                 validator: (value) {
                   if (value.isEmpty) {
-                    return 'Please enter some text';
+                    return tr('emptyText');
                   }
                   return null;
                 },
@@ -75,12 +76,12 @@ class _AddGroupState extends State<AddGroup> {
                 controller: playersController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  hintText: 'Type the nr of members',
+                  hintText: tr('hintMembers'),
                   hintStyle: TextStyle(fontSize: 18),
                 ),
                 validator: (value) {
                   if (value.isEmpty || int.parse(value) <= 0) {
-                    return 'Please enter a number > 0';
+                    return tr('emptyNumber');
                   }
                   return null;
                 }, // if you need custome picker use this
@@ -141,9 +142,9 @@ class _AddGroupState extends State<AddGroup> {
                   }
                 },
                 child: Text(
-                  'Create a team',
+                  'createTeam',
                   style: TextStyle(color: Colors.white, fontSize: 20),
-                ),
+                ).tr(),
               )
             ],
           ),

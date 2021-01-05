@@ -21,6 +21,7 @@ import 'package:huntapp/containers/gamecontainer.dart';
 import 'package:huntapp/containers/actioncontainer.dart';
 import 'package:huntapp/containers/riddlecontainer.dart';
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class GamePage extends StatefulWidget {
   final Event event;
@@ -158,9 +159,9 @@ class _GamePageState extends State<GamePage> {
 
   Widget _buildsubtitle() {
     return Text(
-      'The location you have to reach:',
+      'gameSubtitle',
       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-    );
+    ).tr();
   }
 
   Widget _buildActivateButton(BuildContext context) {
@@ -173,9 +174,9 @@ class _GamePageState extends State<GamePage> {
         activateGame();
       },
       child: Text(
-        'Activate Game',
+        'gameActivate',
         style: TextStyle(color: Colors.white, fontSize: 20),
-      ),
+      ).tr(),
     );
   }
 
@@ -191,9 +192,9 @@ class _GamePageState extends State<GamePage> {
             .then((result) => {if (result != null) checkGroup()});
       },
       child: Text(
-        'Create a team',
+        'createTeam',
         style: TextStyle(color: Colors.white, fontSize: 20),
-      ),
+      ).tr(),
     );
   }
 
@@ -262,14 +263,14 @@ class _GamePageState extends State<GamePage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Hint'),
+          title: Text('gameHint').tr(),
           content: Text(action.locHint),
           actions: <Widget>[
             TextButton(
               child: Text(
-                'OK',
+                'gameHintOk',
                 style: TextStyle(fontSize: 18, color: Colors.orange),
-              ),
+              ).tr(),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -297,9 +298,9 @@ class _GamePageState extends State<GamePage> {
           });
         },
         label: Text(
-          'Scan Qr Code',
+          'gameScanQr',
           style: TextStyle(color: Colors.white, fontSize: 20),
-        ),
+        ).tr(),
       ),
     );
   }
@@ -363,9 +364,9 @@ class _GamePageState extends State<GamePage> {
           getImage();
         },
         label: Text(
-          'Send a selfie',
+          'gameSelfie',
           style: TextStyle(color: Colors.white, fontSize: 20),
-        ),
+        ).tr(),
       ),
     );
   }
@@ -374,8 +375,9 @@ class _GamePageState extends State<GamePage> {
     print(riddle.ridSol);
     return Column(
       children: <Widget>[
-        Text('Solve this riddle',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Text('gameRidTitle',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))
+            .tr(),
         Image.network(globals.baseurl + riddle.ridImage,
             width: MediaQuery.of(context).size.height / 2.5,
             height: MediaQuery.of(context).size.height / 2.5),
@@ -389,18 +391,18 @@ class _GamePageState extends State<GamePage> {
                 controller: solController,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
-                  hintText: 'Type the solution here',
+                  hintText: tr('gameHintSol'),
                   hintStyle: TextStyle(fontSize: 18),
                 ),
                 validator: (value) {
                   if (value.isEmpty)
-                    return 'Please enter some text';
+                    return tr('emptyText');
                   else if (value.toLowerCase() != riddle.ridSol) {
                     setState(() {
                       showCountDown = true;
                       showRiddleButton = false;
                     });
-                    return 'Wrong! Wait for 1 minute';
+                    return tr('gameWaitError');
                   }
                   return null;
                 },
@@ -413,8 +415,10 @@ class _GamePageState extends State<GamePage> {
                           sendRiddle(solController.text.toLowerCase(), context);
                       },
                       //icon: Icon(Icons.save, color: Colors.white),
-                      child: Text('Send solution',
-                          style: TextStyle(color: Colors.white, fontSize: 20)),
+                      child: Text('gameSol',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 20))
+                          .tr(),
                       color: Colors.orange,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -451,15 +455,11 @@ class _GamePageState extends State<GamePage> {
     return Center(
       child: Column(children: [
         Container(height: 10),
-        Text(
-          'Congratulations!',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+        Text('gameCongrat',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+            .tr(),
         Container(height: 10),
-        Text(
-          'Click the button below to download your certificate',
-          style: TextStyle(fontSize: 12),
-        ),
+        Text('matchDesc', style: TextStyle(fontSize: 12)).tr(),
         Divider(),
         FlatButton.icon(
             onPressed: () {
@@ -475,13 +475,10 @@ class _GamePageState extends State<GamePage> {
               Icons.file_download,
               color: Colors.black,
             ),
-            label: Text('Download your certificate!',
-                style: TextStyle(color: Colors.black))),
+            label: Text('matchButton', style: TextStyle(color: Colors.black))
+                .tr()),
         Divider(),
-        Text(
-          'Take care of saving a local copy of it, please',
-          style: TextStyle(fontSize: 12),
-        ),
+        Text('matchWarn', style: TextStyle(fontSize: 12)).tr(),
       ]),
     );
   }
@@ -514,7 +511,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildWarning() {
-    return Text('You cannot play this game');
+    return Text('gameWarn').tr();
   }
 
   ScaffoldFeatureController _buildError(context) {

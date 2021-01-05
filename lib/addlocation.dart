@@ -12,6 +12,7 @@ import 'package:huntapp/containers/eventcontainer.dart';
 import 'package:huntapp/containers/gamecontainer.dart';
 import 'package:huntapp/containers/optionscontainer.dart';
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class AddLocation extends StatefulWidget {
   final Event event;
@@ -61,8 +62,8 @@ class _AddLocationState extends State<AddLocation> {
     _showRadioFinal = false;
     _showLocButton = true;
     _showImgButton = true;
-    _imgName = 'Insert an image';
-    _address = 'Pick a position';
+    _imgName = tr('hintImage');
+    _address = tr('hintPosition');
     checkUser();
     super.initState();
   }
@@ -91,12 +92,12 @@ class _AddLocationState extends State<AddLocation> {
                   controller: nameController,
                   keyboardType: TextInputType.name,
                   decoration: InputDecoration(
-                    hintText: 'Type the name of the location',
+                    hintText: tr('hintLoc'),
                     hintStyle: TextStyle(fontSize: 18),
                   ),
                   validator: (value) {
                     if (value.isEmpty) {
-                      return 'Please enter some text';
+                      return tr('emptyText');
                     }
                     return null;
                   },
@@ -105,7 +106,7 @@ class _AddLocationState extends State<AddLocation> {
                   controller: descController,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
-                    hintText: 'Type a description (Optional)',
+                    hintText: tr('hintDescLoc'),
                     hintStyle: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -113,7 +114,7 @@ class _AddLocationState extends State<AddLocation> {
                   controller: hintController,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
-                    hintText: 'Type an hint (Optional)',
+                    hintText: tr('hintHintLoc'),
                     hintStyle: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -123,7 +124,7 @@ class _AddLocationState extends State<AddLocation> {
                     if (_showRadioStart)
                       Expanded(
                         child: RadioListTile<LocationType>(
-                          title: const Text('Start'),
+                          title: Text('startLoc').tr(),
                           value: LocationType.is_start,
                           groupValue: _loctype,
                           onChanged: (LocationType value) {
@@ -136,7 +137,7 @@ class _AddLocationState extends State<AddLocation> {
                     if (_showRadioMiddle)
                       Expanded(
                         child: RadioListTile<LocationType>(
-                          title: const Text('Middle'),
+                          title: Text('midLoc').tr(),
                           value: LocationType.is_middle,
                           groupValue: _loctype,
                           onChanged: (LocationType value) {
@@ -149,7 +150,7 @@ class _AddLocationState extends State<AddLocation> {
                     if (_showRadioFinal)
                       Expanded(
                         child: RadioListTile<LocationType>(
-                          title: const Text('Final'),
+                          title: Text('finalLoc').tr(),
                           value: LocationType.is_final,
                           groupValue: _loctype,
                           onChanged: (LocationType value) {
@@ -192,7 +193,7 @@ class _AddLocationState extends State<AddLocation> {
                               setState(() {
                                 _showImgButton = true;
                                 _image = null;
-                                _imgName = 'Insert an image';
+                                _imgName = tr('hintImage');
                               });
                             }),
                   ],
@@ -228,7 +229,7 @@ class _AddLocationState extends State<AddLocation> {
                             onPressed: () {
                               setState(() {
                                 _showLocButton = true;
-                                _address = 'Pick a position!';
+                                _address = tr('hintPosition');
                                 _pickedLocation = null;
                               });
                             }),
@@ -253,9 +254,9 @@ class _AddLocationState extends State<AddLocation> {
                       }
                     },
                     child: Text(
-                      'Save Location',
+                      'saveLoc',
                       style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
+                    ).tr(),
                   ),
                 ),
               ],
@@ -329,7 +330,7 @@ class _AddLocationState extends State<AddLocation> {
     request.fields['hint'] = hintController.text;
     request.fields['is_start'] = (_loctype == LocationType.is_start).toString();
     request.fields['is_final'] = (_loctype == LocationType.is_final).toString();
-    request.fields['image'] = (_imgName == 'Insert an image') ? '' : _imgName;
+    request.fields['image'] = (_imgName == tr('hintImage')) ? '' : _imgName;
     request.fields['latitude'] = _pickedLocation.latLng.latitude.toString();
     request.fields['longitude'] = _pickedLocation.latLng.longitude.toString();
 

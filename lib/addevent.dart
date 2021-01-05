@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:huntapp/globals.dart' as globals;
+import 'package:easy_localization/easy_localization.dart';
 
 class AddEventPage extends StatefulWidget {
   @override
@@ -41,7 +42,7 @@ class _AddEventPageState extends State<AddEventPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('New Event')),
+        appBar: AppBar(title: Text('newevent').tr()),
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -53,12 +54,12 @@ class _AddEventPageState extends State<AddEventPage> {
                     controller: nameController,
                     keyboardType: TextInputType.name,
                     decoration: InputDecoration(
-                      hintText: 'Type the name of the event',
+                      hintText: tr('hintEvent'),
                       hintStyle: TextStyle(fontSize: 18),
                     ),
                     validator: (value) {
                       if (value.isEmpty) {
-                        return 'Please enter some text';
+                        return tr('emptyText');
                       }
                       return null;
                     },
@@ -68,12 +69,12 @@ class _AddEventPageState extends State<AddEventPage> {
                     controller: minlocController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      hintText: 'Type the minimum nr. of locations',
+                      hintText: tr('hintMinLoc'),
                       hintStyle: TextStyle(fontSize: 18),
                     ),
                     validator: (value) {
                       if (value.isEmpty) {
-                        return 'Please enter some text';
+                        return tr('emptyText');
                       }
                       return null;
                     },
@@ -83,12 +84,12 @@ class _AddEventPageState extends State<AddEventPage> {
                     controller: maxlocController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      hintText: 'Type the maximum nr. of locations',
+                      hintText: tr('hintMaxLoc'),
                       hintStyle: TextStyle(fontSize: 18),
                     ),
                     validator: (value) {
                       if (value.isEmpty) {
-                        return 'Please enter some text';
+                        return tr('emptyText');
                       }
                       return null;
                     },
@@ -98,12 +99,12 @@ class _AddEventPageState extends State<AddEventPage> {
                     controller: avglocController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      hintText: 'Type the average distance',
+                      hintText: tr('hintAvg'),
                       hintStyle: TextStyle(fontSize: 18),
                     ),
                     validator: (value) {
                       if (value.isEmpty) {
-                        return 'Please enter some text';
+                        return tr('emptyText');
                       }
                       return null;
                     },
@@ -129,9 +130,9 @@ class _AddEventPageState extends State<AddEventPage> {
                         }
                       },
                       child: Text(
-                        'Save Event',
+                        'savevent',
                         style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
+                      ).tr(),
                     ),
                   ),
                 ],
