@@ -44,6 +44,7 @@ class _GamePageState extends State<GamePage> {
   String _image;
   String _pin = '';
   String _idsg = '';
+  int _dice = -1;
   Directory _dir;
   ActionClass action;
   Riddle riddle;
@@ -199,14 +200,13 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildLocation() {
-    final dice = generateRandomNr(); // decide what to show
     return Column(
       children: <Widget>[
         if (action.locImage != '')
           Image.network(globals.baseurl + action.locImage),
         _buildsubtitle(),
         if (action.locImage == '')
-          if ((dice % 2) == 0)
+          if ((_dice % 2) == 0)
             _buildMap()
           else
             Text(
@@ -673,6 +673,8 @@ class _GamePageState extends State<GamePage> {
         setState(() {
           action = action;
           if (action.actReach == null) {
+            if (action.locImage != '' && _dice == -1)
+              _dice = generateRandomNr();
             showLocationInfo = true;
             showProgress = false;
           } else
@@ -697,6 +699,7 @@ class _GamePageState extends State<GamePage> {
           riddle = riddle;
           showRiddle = true;
           showProgress = false;
+          _dice = -1;
         });
       }
     });
