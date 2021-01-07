@@ -407,7 +407,7 @@ class _GamePageState extends State<GamePage> {
                   return null;
                 },
               ),
-              Divider(),
+              Container(height: 10),
               (showRiddleButton)
                   ? RaisedButton(
                       onPressed: () {
