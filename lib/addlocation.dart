@@ -291,7 +291,7 @@ class _AddLocationState extends State<AddLocation> {
   void getPlace() async {
     Position current = await Geolocator.getLastKnownPosition();
     LocationResult result = await showLocationPicker(
-        context, 'AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg',
+        context, globals.mapsApiKey,
         initialCenter: LatLng(current.latitude, current.longitude),
         myLocationButtonEnabled: true,
         desiredAccuracy: LocationAccuracy.best,

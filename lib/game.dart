@@ -226,7 +226,7 @@ class _GamePageState extends State<GamePage> {
           width: MediaQuery.of(context).size.height / 1.5,
           height: MediaQuery.of(context).size.height / 2,
           scaleToDevicePixelRatio: true,
-          googleApiKey: 'AIzaSyDsYSmcciHNv_6RJy_RzM3hmrcmfYErFkg',
+          googleApiKey: globals.mapsApiKey,
           styles: <MapStyle>[
             MapStyle(
               element: StyleElement.geometry.fill,
