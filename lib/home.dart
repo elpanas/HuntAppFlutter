@@ -16,7 +16,7 @@ class HomePage extends StatelessWidget {
       title: 'Code Hunting Game',
       theme: lightThemeData,
       darkTheme: darkThemeData,
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.system,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
