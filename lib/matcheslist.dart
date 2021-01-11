@@ -116,7 +116,7 @@ class _MatchesListState extends State<MatchesList> {
       child: SizedBox(
         height: MediaQuery.of(context).size.height / 1.3,
         child: Center(
-          child: Text('nofinishedgames').tr(),
+          child: Text('matchesWarn').tr(),
         ),
       ),
     );

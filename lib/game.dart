@@ -202,10 +202,10 @@ class _GamePageState extends State<GamePage> {
   Widget _buildLocation() {
     return Column(
       children: <Widget>[
-        if (action.locImage != '')
+        if (action.locImage != null)
           Image.network(globals.baseurl + action.locImage),
         _buildsubtitle(),
-        if (action.locImage == '')
+        if (action.locImage == null)
           if ((_dice % 2) == 0)
             _buildMap()
           else
@@ -718,7 +718,7 @@ class _GamePageState extends State<GamePage> {
       body: jsonEncode(<String, dynamic>{
         'ida': action.actId,
         'idr': riddle.ridId,
-        '_idsg': _idsg,
+        'idsg': _idsg,
         'solution': solution,
         'is_final': action.isFinal
       }),
@@ -750,7 +750,7 @@ class _GamePageState extends State<GamePage> {
             'Content-Type': 'application/json; charset=UTF-8',
             HttpHeaders.authorizationHeader: 'Basic ' + _pin
           },
-          body: jsonEncode(<String, dynamic>{'_idsg': _idsg}),
+          body: jsonEncode(<String, dynamic>{'idsg': _idsg}),
         )
         .then((res) => {
               if (res.statusCode == HttpStatus.ok)

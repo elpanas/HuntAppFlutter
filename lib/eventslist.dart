@@ -221,6 +221,7 @@ class _EventsPageState extends State<EventsPage> {
           setState(() {
             events = events;
             _showProgress = false;
+            message = '';
           });
         } else {
           setState(() {
