@@ -212,6 +212,7 @@ class _ClusterPageState extends State<ClusterPage> {
           }
         } on Exception catch (_) {
           setState(() {
+            message = 'No Locations';
             _showMessage = true;
           });
         }

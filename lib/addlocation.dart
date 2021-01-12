@@ -45,10 +45,10 @@ class _AddLocationState extends State<AddLocation> {
   final picker = ImagePicker();
   LocationResult _pickedLocation;
   LocationType _loctype = LocationType.is_middle;
-  String _address;
+  String _address = tr('hintPosition');
   String _pin = '';
   String _image;
-  String _imgName;
+  String _imgName = tr('hintImage');
 
   bool _showImgButton;
   bool _showRadioStart;
@@ -61,13 +61,11 @@ class _AddLocationState extends State<AddLocation> {
 
   @override
   void initState() {
+    _showImgButton = true;
     _showRadioStart = false;
     _showRadioMiddle = false;
     _showRadioFinal = false;
     _showLocButton = true;
-    _showImgButton = true;
-    _imgName = tr('hintImage');
-    _address = tr('hintPosition');
     checkUser();
     super.initState();
   }
@@ -283,15 +281,10 @@ class _AddLocationState extends State<AddLocation> {
       else if (((event.maxLoc - options.locnr) == 1) &&
           (cluster == options.totClusters))
         _showRadioFinal = true;
-      else if ((options.locnr < event.maxLoc) &&
-          (cluster == options.totClusters)) {
-        _showRadioMiddle = true;
-        _showRadioFinal = true;
-      } else if (options.locnr < event.minLoc)
-        _showRadioMiddle = true;
       else {
         _showRadioMiddle = true;
-        if (cluster == options.totClusters) _showRadioFinal = true;
+        if (((cluster == options.totClusters) || newCluster) &&
+            (options.locnr >= event.minLoc)) _showRadioFinal = true;
       }
     });
   }

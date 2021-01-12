@@ -159,7 +159,7 @@ class _ClusterListState extends State<ClusterList> {
             onTap: () {
               requestPdf().then((res) => {
                     if (res.statusCode == HttpStatus.ok)
-                      {createPdf(res), setQrCodesFlag()}
+                      createPdf(res)
                     else
                       _buildError(context)
                   });
@@ -196,22 +196,6 @@ class _ClusterListState extends State<ClusterList> {
               });
   }
 
-  void setQrCodesFlag() {
-    http
-        .put(globals.url + 'game/qrc',
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-              HttpHeaders.authorizationHeader: 'Basic ' + _pin
-            },
-            body: jsonEncode(<String, dynamic>{'idg': game.gameId}))
-        .then((res) => {
-              if (res.statusCode == HttpStatus.ok)
-                setState(() {
-                  _showProgress = false;
-                })
-            });
-  }
-
   void loadClusters() {
     http.get(
       globals.url + 'cluster/' + game.gameId,
@@ -227,6 +211,7 @@ class _ClusterListState extends State<ClusterList> {
           clusters = clusters;
           _showProgress = false;
         });
+        loadLocations();
       } else
         setState(() {
           _showMessage = true;
@@ -277,6 +262,6 @@ class _ClusterListState extends State<ClusterList> {
   void checkUser() async {
     await storage
         .read(key: 'pin')
-        .then((value) => {_pin = value, loadClusters(), loadLocations()});
+        .then((value) => {_pin = value, loadClusters()});
   }
 }
