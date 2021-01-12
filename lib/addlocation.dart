@@ -283,7 +283,11 @@ class _AddLocationState extends State<AddLocation> {
       else if (((event.maxLoc - options.locnr) == 1) &&
           (cluster == options.totClusters))
         _showRadioFinal = true;
-      else if (options.locnr < event.minLoc)
+      else if ((options.locnr < event.maxLoc) &&
+          (cluster == options.totClusters)) {
+        _showRadioMiddle = true;
+        _showRadioFinal = true;
+      } else if (options.locnr < event.minLoc)
         _showRadioMiddle = true;
       else {
         _showRadioMiddle = true;
