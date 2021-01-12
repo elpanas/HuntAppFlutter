@@ -18,13 +18,15 @@ class AddLocation extends StatefulWidget {
   final Event event;
   final Game game;
   final int cluster;
+  final bool newCluster;
   final Opts options;
 
-  AddLocation(this.event, this.game, this.cluster, this.options);
+  AddLocation(
+      this.event, this.game, this.cluster, this.newCluster, this.options);
 
   @override
-  _AddLocationState createState() =>
-      _AddLocationState(this.event, this.game, this.cluster, this.options);
+  _AddLocationState createState() => _AddLocationState(
+      this.event, this.game, this.cluster, this.newCluster, this.options);
 }
 
 enum LocationType { is_start, is_middle, is_final }
@@ -33,6 +35,7 @@ class _AddLocationState extends State<AddLocation> {
   final Event event;
   final Game game;
   final int cluster;
+  final bool newCluster;
   final Opts options;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
@@ -53,7 +56,8 @@ class _AddLocationState extends State<AddLocation> {
   bool _showRadioFinal;
   bool _showLocButton;
 
-  _AddLocationState(this.event, this.game, this.cluster, this.options);
+  _AddLocationState(
+      this.event, this.game, this.cluster, this.newCluster, this.options);
 
   @override
   void initState() {
@@ -80,7 +84,7 @@ class _AddLocationState extends State<AddLocation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('New Location')),
+      appBar: AppBar(title: Text('newLoc').tr()),
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -323,6 +327,7 @@ class _AddLocationState extends State<AddLocation> {
         http.MultipartRequest('POST', Uri.parse(globals.url + 'loc/'));
 
     request.fields['avg_distance'] = event.avgLoc.toString();
+    request.fields['new_cluster'] = newCluster.toString();
     request.fields['game_id'] = game.gameId;
     request.fields['cluster'] = cluster.toString();
     request.fields['name'] = nameController.text;
@@ -337,7 +342,7 @@ class _AddLocationState extends State<AddLocation> {
     request.headers[HttpHeaders.authorizationHeader] = 'Basic ' + _pin;
 
     request.files.add(await http.MultipartFile.fromPath('lphoto', _image,
-        contentType: MediaType('image', 'png')));
+        contentType: MediaType('image', 'jpeg')));
 
     return await request.send();
   }

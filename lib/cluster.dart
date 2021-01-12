@@ -15,25 +15,29 @@ class ClusterPage extends StatefulWidget {
   final Event event;
   final Game game;
   final int cluster;
+  final bool newCluster;
   final Opts options;
-  ClusterPage(this.event, this.game, this.cluster, this.options);
+  ClusterPage(
+      this.event, this.game, this.cluster, this.newCluster, this.options);
 
   @override
   _ClusterPageState createState() =>
-      _ClusterPageState(event, game, cluster, options);
+      _ClusterPageState(event, game, cluster, newCluster, options);
 }
 
 class _ClusterPageState extends State<ClusterPage> {
   final Event event;
   final Game game;
   final int cluster;
+  final bool newCluster;
   final Opts options;
-  _ClusterPageState(this.event, this.game, this.cluster, this.options);
+  _ClusterPageState(
+      this.event, this.game, this.cluster, this.newCluster, this.options);
   final storage = new FlutterSecureStorage();
   List<Location> locations = List<Location>();
   String _pin = '';
-  bool _showAddButton;
-  bool _showDropMenu;
+  bool _showAddButton = false;
+  bool _showDropMenu = false;
   bool _showProgress = true;
   bool _showMessage = false;
   bool _locStartFinalWarn = false;
@@ -44,8 +48,6 @@ class _ClusterPageState extends State<ClusterPage> {
 
   @override
   void initState() {
-    _showAddButton = false;
-    _showDropMenu = false;
     checkUser();
     super.initState();
   }
@@ -63,8 +65,8 @@ class _ClusterPageState extends State<ClusterPage> {
                 Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                AddLocation(event, game, cluster, options)))
+                            builder: (_) => AddLocation(
+                                event, game, cluster, newCluster, options)))
                     .then((result) => {
                           if (result != null)
                             {loadLocations(), loadClusterInfo()}
@@ -114,7 +116,7 @@ class _ClusterPageState extends State<ClusterPage> {
                       child: ListTile(
                         tileColor: (locations[index].locStart ||
                                 locations[index].locFinal)
-                            ? Colors.indigo
+                            ? Colors.orange[50]
                             : null,
                         onTap: () {
                           /*MaterialPageRoute routeEvent = MaterialPageRoute(
@@ -124,10 +126,7 @@ class _ClusterPageState extends State<ClusterPage> {
                         },
                         leading: Icon(Icons.location_on),
                         title: Text(
-                          (locations[index].locFinal)
-                              ? tr('clusterFinalLoc')
-                              : tr('clusterLoc',
-                                  args: [(index + 1).toString()]),
+                          locations[index].locName,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -216,16 +215,24 @@ class _ClusterPageState extends State<ClusterPage> {
             _showMessage = true;
           });
         }
+      } else {
+        setState(() {
+          message = 'No Locations';
+          _showMessage = true;
+          _showProgress = false;
+        });
       }
     });
   }
 
   void generateList(int totLocs) {
-    for (var i = 2; i <= totLocs; i++) stepsNrList.add(i);
-    setState(() {
-      stepsNrList = stepsNrList;
-      _showDropMenu = true;
-    });
+    if (totLocs > 1) {
+      for (var i = 2; i <= totLocs; i++) stepsNrList.add(i);
+      setState(() {
+        stepsNrList = stepsNrList;
+        _showDropMenu = true;
+      });
+    }
   }
 
   void loadClusterInfo() {

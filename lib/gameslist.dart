@@ -160,12 +160,11 @@ class _GameListPageState extends State<GameListPage> {
           games = games;
           _showProgress = false;
         });
-      } else {
+      } else
         setState(() {
           _showMessage = true;
           _showProgress = false;
         });
-      }
     });
   }
 

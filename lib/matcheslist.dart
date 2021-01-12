@@ -142,12 +142,12 @@ class _MatchesListState extends State<MatchesList> {
           matches = matches;
           _showProgress = false;
         });
-      } else {
+      } else 
         setState(() {
           _showMessage = true;
           _showProgress = false;
         });
-      }
+      
     });
   }
 

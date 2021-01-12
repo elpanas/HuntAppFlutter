@@ -85,8 +85,8 @@ class _ClusterListState extends State<ClusterList> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => ClusterPage(
-                            event, game, clusters.length + 1, locOptions)));
+                        builder: (_) => ClusterPage(event, game,
+                            clusters.length + 1, true, locOptions)));
               })
           : null,
       body: Column(
@@ -105,8 +105,12 @@ class _ClusterListState extends State<ClusterList> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => ClusterPage(event, game,
-                                    clusters[index].clusterNr, locOptions)));
+                                builder: (_) => ClusterPage(
+                                    event,
+                                    game,
+                                    clusters[index].clusterNr,
+                                    false,
+                                    locOptions)));
                       },
                       leading: Icon(Icons.scatter_plot),
                       title: Text(
@@ -223,18 +227,17 @@ class _ClusterListState extends State<ClusterList> {
           clusters = clusters;
           _showProgress = false;
         });
-      } else {
+      } else
         setState(() {
           _showMessage = true;
           _showProgress = false;
         });
-      }
     });
   }
 
   void loadLocations() {
     http.get(
-      globals.url + 'loc/game/' + this.game.gameId,
+      globals.url + 'loc/game/' + game.gameId,
       headers: <String, String>{
         HttpHeaders.authorizationHeader: 'Basic ' + _pin
       },
@@ -253,15 +256,14 @@ class _ClusterListState extends State<ClusterList> {
 
         locOptions = Opts(locnr, isstart, isfinal, clusters.length);
 
-        if (locOptions.isfinal) {
+        if (locOptions.isfinal)
           setState(() {
             _showQrButton = true;
           });
-        } else {
+        else
           setState(() {
             _showAddButton = true;
           });
-        }
       } else {
         locOptions = Opts(0, false, false, 0);
         setState(() {

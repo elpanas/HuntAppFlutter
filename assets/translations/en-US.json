@@ -65,8 +65,6 @@
     "_comment9": "CLUSTERS",
     "noclusters": "No clusters",
     "clusterSteps": "Extracted Steps",
-    "clusterFinalLoc": "Final Location",
-    "clusterLoc": "Location {}",
     "clusterWarn": "You have to add Start and/or final locations",
     "nolocs": "No Locations",
     "_comment10": "FINISHED GAME",
