@@ -205,6 +205,7 @@ class _EventsPageState extends State<EventsPage> {
   void loadEvents() async {
     try {
       Position current = await Geolocator.getLastKnownPosition();
+      if (current == null) current = await Geolocator.getCurrentPosition();
       http.get(
         globals.url +
             'event/lat/' +
