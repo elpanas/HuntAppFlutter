@@ -207,15 +207,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Future setVars(res) async {
     await storage.deleteAll();
-    var admvalue = (!this.login) ? _checked.toString() : res.body.toString();
+    // var admvalue = (!this.login) ? _checked.toString() : res.body.toString();
+    var admvalue;
+    final resJson = jsonDecode(res.body);
+
+    admvalue =
+        (!this.login) ? _checked.toString() : resJson['admin'].toString();
 
     await storage.write(key: 'is_admin', value: admvalue);
-
     await storage.write(key: 'username', value: nameController.text);
-    return await storage.write(
-        key: 'pin',
-        value: base64.encode(
-            utf8.encode(nameController.text + ':' + pswController.text)));
+    return await storage.write(key: 'pin', value: resJson['id']);
   }
 
   Future makeLogin(String name, String psw) async {
